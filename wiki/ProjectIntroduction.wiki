@@ -5,7 +5,7 @@ The Real-time Thread Operating System is an open source real-time operating syst
 
 It has been one year since our RT-Thread official version 0.2.4 has been released. The version 0.3.0 branch is currently under development. We have received lot of feedbacks from our customers, and have been fixing bugs as well as making big progress. 
 
-= Features of RT-Thread Kernel =
+== Features of RT-Thread Kernel ==
 
   * Object oriented real-time core (while remaining the elegant and flexible style of C language);
   * 32 or 256 priority scheduling multi-thread scheduling; Using the round-robin policy ensures that all threads having the same priority level will be scheduled equally;
@@ -20,14 +20,14 @@ It has been one year since our RT-Thread official version 0.2.4 has been release
   * Access system global variables directly via command line like C Programming Language;
   * Command history records and automatic complete for the Command Prompt;
 
-= Features of Device File System = 
+== Features of Device File System == 
   * Virtual File System optimised for small device
   * POSIX style API;
   * Support the different implementation of file systems
   * Cache enabled EFSL FAT file system(GPLv2 coding) supported;
   * Buildin SDIO/SPI interface driver base on ST STM32 standard peripheral library, in which SDIO interface supports MMC cards and high speed SD cards.
 
-= Features of LwIP, a lightweight TCP/IP protocol stack =
+== Features of LwIP, a lightweight TCP/IP protocol stack ==
   * Standard BSD Socket interface;
   * IP, ICMP, UDP, TCP supported 
   * DNS, DHCP, PPP supported
