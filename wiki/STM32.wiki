@@ -11,3 +11,6 @@ RT-Thread/STM32 is a branches for STM32F series microcontrollers of STMicroelect
 
 = Branch Maintainer =
   * Bernard Xiong
+
+= 0.3.0 RC1 =
+  * [http://rt-thread.googlecode.com/files/rt-thread%20stm32%200.3.0%20rc1.zip 0.3.0_rc1.zip]
