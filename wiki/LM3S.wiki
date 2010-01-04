@@ -12,3 +12,6 @@ The features of RT-Thread/LM3S include:
 
 = Branch Maintainer = 
   * qiuyiuestc
+
+= 0.3.0 RC1 =
+  * [http://rt-thread.googlecode.com/files/rt-thread%20lm3s%200.3.0%20rc1.zip]
