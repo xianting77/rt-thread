@@ -27,7 +27,6 @@
 `set PATH=C:\python25\script;%PATH%`
 
 `scons`
-http://www.rt-thread.org/phpBB3/download/file.php?mode=view&id=517
 
   * rtthread-mini2440.axf and rtthread-mini2440.bin would be created in "bsp/mini2440" direcotry when compiling successfully
 
