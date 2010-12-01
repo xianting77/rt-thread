@@ -8,9 +8,10 @@ Following table records the current development status of RT-Thread 0.4.x branch
 || SAMSUNG 2440 porting || done || 
 || Renesas M16C porting || 80% finished || 
 || *Features* || *Status* ||
-|| Application Module || 70% finished || 
-|| RT-Thread/GUI enhansment || 10% finshed || 
-|| Switch more build scripts to scons scripts || 50% finished || 
+|| POSIX standard || 60% finished ||
+|| Application Module || 90% finished || 
+|| RT-Thread/GUI enhansment || 30% finshed || 
+|| Switch more build scripts to scons scripts || done || 
 
 
 = RT-Thread 0.3.0 release notes =
