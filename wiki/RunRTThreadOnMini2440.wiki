@@ -1,7 +1,7 @@
 = Howto Run RT-Thread 0.4.0 on QEMU/mini2440 =
 
 1.Get RT-Thread RTOS source code
-  * http://code.google.com/p/rt-thread/downloads/detail?name=rt-thread-0.4.0 beta1.zip
+  * <a href="http://rt-thread.googlecode.com/files/rt-thread-0.4.0%20beta1.zip">RT-Thread 0.4.0 beta1</a>
 
 2. Install scons build system
   * Make sure you have installed python 2.5.x and scons 1.x or 2.x, belowing is the download URL of the software for windows users: 
@@ -10,7 +10,7 @@
 
 3. Install compiler
   * You can choose to GNU GCC or armcc as compiler.
-    * If using gcc compiler, CodeSourcery toolchain is one of the choice.
+    * If using gcc compiler, [http://www.codesourcery.com/sgpp/lite/arm/portal/subscription?@template=lite CodeSourcery ARM EABI] toolchain is one of the choice.
     * If using armcc, Keil MDK 3.8 IDE is the choice.
 
     Make sure you have installed one of them.
@@ -18,17 +18,24 @@
 4. Edit "bsp\mini2440\rtconfig.py" to configure devlopement environment
   * if using gcc compiler, set CROSS_TOOL = 'gcc', else CROSS_TOOL = 'armcc'
   * set EXEC_PATH to your toolchains' install path, for example, my EXEC_PATH = `E:/Program Files/CodeSourcery/Sourcery G++ Lite/bin`
+{{{
+CROSS_TOOL 	= 'gcc'
 
-  * http://www.rt-thread.org/rt-thread/rtconfig.jpg
+if  CROSS_TOOL == 'gcc':
+	PLATFORM 	= 'gcc'
+	EXEC_PATH 	= 'E:/Program Files/CodeSourcery/Sourcery G++ Lite/bin'
+elif CROSS_TOOL == 'keil':
+	PLATFORM 	= 'armcc'
+	EXEC_PATH 	= 'E:/Keil'
+}}}
 
 5. Compile RT-Thread RTOS
   * open command line console, suppose you unzip RT-Thread 0.4.0 beta1 under d:\rt-thread, and install Python 2.5 in C:\Python25:
-
-`cd rt-thread\bsp\mini2440`
-
-`set PATH=C:\python25\script;%PATH%`
-
-`scons`
+{{{
+cd rt-thread\bsp\mini2440
+set PATH=C:\python25\script;%PATH%
+scons
+}}}
 
   * http://www.rt-thread.org/rt-thread/scons.jpg
 
@@ -50,8 +57,10 @@
   * install uboot on NANDFLASH
   * boot from NANDFLASH
   * using uboot's "loadb command" to load rt-thread.bin to 0x30000000
-  * then execute command "nand write 0x30000000 0x100000 0x120000"
-  * then execute command "set bootcmd nand read 0x30000000 0x100000 0x120000/;go 0x30000000"
-  * then execute command "saveenv"
+{{{
+nand write 0x30000000 0x100000 0x120000
+set bootcmd nand read 0x30000000 0x100000 0x120000/;go 0x30000000
+saveenv
+}}}
   * then reset and boot from NANDFLASH, rt-thread would be loaded from NANDFLASH to SDRAM's
 0x30000000 address by uboot and start running from there.
