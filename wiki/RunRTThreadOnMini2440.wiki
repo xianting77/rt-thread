@@ -56,10 +56,12 @@ scons
 8.burn rt-thread.bin to dev board's nandflash
   * install uboot on NANDFLASH
   * boot from NANDFLASH
-  * using uboot's "loadb command" to load rt-thread.bin to 0x30000000
+  * using uboot's "loadb command" or "tftp" to load rt-thread.bin to 0x30000000
 {{{
-nand write 0x30000000 0x100000 0x120000
-set bootcmd nand read 0x30000000 0x100000 0x120000/;go 0x30000000
+tftp 0x30000000 192.168.1.5:rtthread.bin
+nand erase 0x100000 0x150000
+nand write 0x30000000 0x100000 0x150000
+set bootcmd 'nand read 0x30000000 0x100000 0x150000;go 0x30000000'
 saveenv
 }}}
   * then reset and boot from NANDFLASH, rt-thread would be loaded from NANDFLASH to SDRAM's
