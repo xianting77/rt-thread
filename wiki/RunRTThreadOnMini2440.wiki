@@ -33,7 +33,7 @@ elif CROSS_TOOL == 'keil':
   * open command line console, suppose you unzip RT-Thread 0.4.0 beta1 under d:\rt-thread, and install Python 2.5 in C:\Python25:
 {{{
 cd rt-thread\bsp\mini2440
-set PATH=C:\python25\script;%PATH%
+set PATH=C:\python25\scripts;%PATH%
 scons
 }}}
 
