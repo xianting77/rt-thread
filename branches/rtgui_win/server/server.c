@@ -95,7 +95,6 @@ void rtgui_server_handle_mouse_btn(rtgui_event_mouse_t* event)
 		event->wid = win;
 		if(rtgui_server_focus_win != win)
 		{//不是焦点窗口,则举升它
-			rt_kprintf("1.raise win.");
 			rtgui_topwin_raise(win);
 		}
 
@@ -180,20 +179,6 @@ void rtgui_server_handle_kbd(rtgui_event_kbd_t* event)
 			event->wid = RT_NULL;
 			rtgui_thread_send(panel->tid,(rtgui_event_t*)event,sizeof(rtgui_event_kbd_t));
 		}
-	}
-}
-
-void rtgui_server_handle_current_pos(rtgui_event_current_pos_t* event)
-{
-	struct rt_thread *thread = rtgui_panel_get()->tid;
-
-	/* re-init to server thread */
-	RTGUI_EVENT_CURRENT_POS_INIT(event);
-
-	/* send to panel */
-	if(thread != RT_NULL)
-	{//要用同步方式发送事件,否则会引起触摸屏检测死机
-		rtgui_thread_send_sync(thread, (rtgui_event_t*)event, sizeof(rtgui_event_current_pos_t));
 	}
 }
 
@@ -287,10 +272,6 @@ static void rtgui_server_entry(void* parameter)
 	
 				case RTGUI_EVENT_KBD:
 					rtgui_server_handle_kbd((rtgui_event_kbd_t*)event);
-					break;
-	
-				case RTGUI_EVENT_CURRENT_POS:
-					rtgui_server_handle_current_pos((rtgui_event_current_pos_t*)event);
 					break;
 	
 				case RTGUI_EVENT_COMMAND:

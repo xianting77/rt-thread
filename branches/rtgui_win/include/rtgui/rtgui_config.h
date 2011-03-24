@@ -24,9 +24,9 @@
 	#undef RTGUI_USING_HZ_FILE
 #endif
 
-#define RTGUI_USING_WINMOVE
+/* #define RTGUI_USING_WINMOVE */
 
-//#define RTGUI_IMAGE_BMP
+/* #define RTGUI_IMAGE_BMP */
 
 #define RTGUI_DEFAULT_FONT_SIZE 16
 

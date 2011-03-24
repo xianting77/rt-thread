@@ -40,47 +40,39 @@ typedef struct rtgui_event_scrollbar		rtgui_event_scrollbar_t;
 typedef struct rtgui_event_focused			rtgui_event_focused_t;
 typedef struct rtgui_event_resize			rtgui_event_resize_t;
 
+enum _rtgui_event_type
+{
+	/* panel event NULL */
+	/* window event */
+	RTGUI_EVENT_WIN_CREATE=8,       /* create a window 		*/
+	RTGUI_EVENT_WIN_DESTROY,        /* destroy a window 	*/
+	RTGUI_EVENT_WIN_SHOW,           /* show a window 		*/
+	RTGUI_EVENT_WIN_HIDE,           /* hide a window 		*/
+	RTGUI_EVENT_WIN_ACTIVATE,       /* activate a window 	*/
+	RTGUI_EVENT_WIN_DEACTIVATE,     /* deactivate a window 	*/
+	RTGUI_EVENT_WIN_CLOSE,          /* close a window 		*/
+	RTGUI_EVENT_WIN_MAX,            /* max a window 		*/
+	RTGUI_EVENT_WIN_MIN,            /* min a window 		*/
+	RTGUI_EVENT_WIN_MOVE,           /* move a window 		*/
+	RTGUI_EVENT_WIN_RESIZE,         /* resize a window 		*/
 
-/* panel event NULL */
-
-/* window event */
-#define RTGUI_EVENT_PANEL_ATTACH		0   /* attach to a panel	*/
-#define RTGUI_EVENT_PANEL_DETACH		1   /* detach from a panel	*/
-#define RTGUI_EVENT_PANEL_SHOW			2   /* show in a panel		*/
-#define RTGUI_EVENT_PANEL_HIDE			3   /* hide from a panel	*/
-#define RTGUI_EVENT_PANEL_INFO			4   /* panel information 	*/
-#define RTGUI_EVENT_PANEL_RESIZE		5   /* resize panel 		*/
-#define RTGUI_EVENT_PANEL_FULLSCREEN	6   /* to full screen 		*/
-#define RTGUI_EVENT_PANEL_NORMAL		7   /* to normal screen 	*/
-
-#define RTGUI_EVENT_WIN_CREATE			8	/* create a window 		*/
-#define RTGUI_EVENT_WIN_DESTROY			9	/* destroy a window 	*/
-#define RTGUI_EVENT_WIN_SHOW			10	/* show a window 		*/
-#define RTGUI_EVENT_WIN_HIDE			11	/* hide a window 		*/
-#define RTGUI_EVENT_WIN_ACTIVATE		12	/* activate a window 	*/
-#define RTGUI_EVENT_WIN_DEACTIVATE		13	/* deactivate a window 	*/
-#define RTGUI_EVENT_WIN_CLOSE			14	/* close a window 		*/
-#define RTGUI_EVENT_WIN_MAX				15	/* max a window 		*/
-#define RTGUI_EVENT_WIN_MIN				16	/* min a window 		*/
-#define RTGUI_EVENT_WIN_MOVE			17	/* move a window 		*/
-#define RTGUI_EVENT_WIN_RESIZE			18  /* resize a window 		*/
-#define RTGUI_EVENT_UPDATE				19	/* update a rect 		*/
-#define RTGUI_EVENT_PAINT				23	/* paint on screen 		*/
-#define RTGUI_EVENT_TIMER				24	/* timer 0x17			*/
-/* clip rect information */
-#define RTGUI_EVENT_CLIP				25	/* 剪切域信息		    */
-/* mouse and keyboard event */
-#define RTGUI_EVENT_MOUSE_MOTION		26	/* 鼠标手势             */
-#define RTGUI_EVENT_MOUSE_BUTTON		27	/* 鼠标点击             */
-#define RTGUI_EVENT_KBD					28	/* keyboard info	0x1B*/
-/* user command event */
-#define RTGUI_EVENT_COMMAND				29	/* 用户命令 		    */
-/* widget event */
-#define RTGUI_EVENT_FOCUSED				30	/* 控件焦点             */
-#define RTGUI_EVENT_SCROLLED			31  /* scroll bar scrolled  */
-#define RTGUI_EVENT_RESIZE				32	/* widget resize 		*/
-#define RTGUI_EVENT_CURRENT_POS			33	/* 更新当前坐标点       */
-#define RTGUI_EVENT_BACKLIGHT			34  /* 液晶屏背光			*/
+	RTGUI_EVENT_UPDATE,             /* update a rect 		*/
+	RTGUI_EVENT_PAINT,              /* paint on screen 		*/
+	RTGUI_EVENT_TIMER,              /* timer 0x17			*/
+	/* clip rect information */
+	RTGUI_EVENT_CLIP,               /* clip rect info		*/
+	/* mouse and keyboard event */
+	RTGUI_EVENT_MOUSE_MOTION,       /* mouse motion         */
+	RTGUI_EVENT_MOUSE_BUTTON,       /* mouse button info 	*/
+	RTGUI_EVENT_KBD,                /* keyboard info	    */
+	/* user command event */
+	RTGUI_EVENT_COMMAND,            /* user command 		*/
+	/* widget event */
+	RTGUI_EVENT_FOCUSED,            /* widget focused       */
+	RTGUI_EVENT_SCROLLED,           /* scroll bar scrolled  */
+	RTGUI_EVENT_RESIZE,             /* widget resize 		*/
+}; 
+typedef enum _rtgui_event_type rtgui_event_type;
 
 enum {
 	RTGUI_STATUS_OK = 0,		/* status ok 		*/
@@ -266,8 +258,6 @@ struct rtgui_event_backlight
 #define RTGUI_EVENT_MOUSE_MOTION_INIT(e)	RTGUI_EVENT_INIT(&((e)->parent), RTGUI_EVENT_MOUSE_MOTION)
 #define RTGUI_EVENT_MOUSE_BUTTON_INIT(e)	RTGUI_EVENT_INIT(&((e)->parent), RTGUI_EVENT_MOUSE_BUTTON)
 #define RTGUI_EVENT_KBD_INIT(e)				RTGUI_EVENT_INIT(&((e)->parent), RTGUI_EVENT_KBD)
-#define RTGUI_EVENT_CURRENT_POS_INIT(e)		RTGUI_EVENT_INIT(&((e)->parent), RTGUI_EVENT_CURRENT_POS)
-#define RTGUI_EVENT_BACKLIGHT_INIT(e)		RTGUI_EVENT_INIT(&((e)->parent), RTGUI_EVENT_BACKLIGHT)
 
 struct rtgui_event_command
 {
