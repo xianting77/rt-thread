@@ -207,8 +207,7 @@ void rtgui_mouse_moveto(int x, int y)
 			rtgui_winrect_save();
 
 			/* move current cursor */
-			_rtgui_cursor->cx = x;
-			_rtgui_cursor->cy = y;
+			rtgui_cursor_set_location(x,y);
 
 #ifdef RTGUI_USING_MOUSE_CURSOR
 			/* show cursor */
@@ -224,8 +223,7 @@ void rtgui_mouse_moveto(int x, int y)
 			rtgui_mouse_hide_cursor();
 #endif
 			/* move current cursor */
-			_rtgui_cursor->cx = x;
-			_rtgui_cursor->cy = y;
+			rtgui_cursor_set_location(x,y);
 
 #ifdef RTGUI_USING_MOUSE_CURSOR
 			/* show cursor */
@@ -380,6 +378,12 @@ static void rtgui_cursor_show()
 }
 #endif
 
+void rtgui_cursor_set_location(int x, int y)
+{
+	_rtgui_cursor->cx = x;
+	_rtgui_cursor->cy = y;
+}
+
 #ifdef RTGUI_USING_WINMOVE
 void rtgui_winrect_set(rtgui_win_t* win)
 {
@@ -389,12 +393,6 @@ void rtgui_winrect_set(rtgui_win_t* win)
 	/* set win rect */
 	_rtgui_cursor->win_rect = RTGUI_WIDGET_EXTENT(win);
 	_rtgui_cursor->win = win;
-}
-
-void rtgui_cursor_set_location(int x, int y)
-{
-	_rtgui_cursor->cx = x;
-	_rtgui_cursor->cy = y;
 }
 
 rt_bool_t rtgui_winrect_moved_done(rtgui_rect_t* winrect, rtgui_win_t** win)

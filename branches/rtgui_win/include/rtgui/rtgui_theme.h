@@ -56,7 +56,6 @@ void rtgui_theme_draw_label(rtgui_label_t* label);
 void rtgui_theme_draw_textbox(rtgui_textbox_t* box);
 void rtgui_theme_draw_iconbox(rtgui_iconbox_t* iconbox);
 void rtgui_theme_draw_checkbox(rtgui_checkbox_t* checkbox);
-void rtgui_theme_draw_radiobutton(rtgui_radiobox_t* rbox, rt_uint32_t index);
 void rtgui_theme_draw_radiobox(rtgui_radiobox_t* rbox);
 void rtgui_theme_draw_menu(rtgui_menu_t* menu);
 void rtgui_theme_draw_menu_item(rtgui_menu_t* menu, rtgui_menu_item_t *item);

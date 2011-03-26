@@ -180,6 +180,8 @@ rtgui_slider_t* rtgui_slider_create(PVOID parent, rt_size_t min, rt_size_t max, 
 		rect.x2 = rect.x1+w;
 		rect.y2 = rect.y1+h;
 		rtgui_widget_set_rect(slider, &rect);
+
+		rtgui_container_add_child(parent, slider);
 	}
 
 	return slider;

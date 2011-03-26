@@ -12,29 +12,40 @@
 /** Checks if the object is an rtgui_radiobox_t */
 #define RTGUI_IS_RADIOBOX(obj)    (RTGUI_OBJECT_CHECK_TYPE((obj), RTGUI_RADIOBOX_TYPE))
 
+typedef struct rtgui_rb_group rtgui_rb_group_t;
+
+/* rb group, rb => radiobox */
+struct rtgui_rb_group
+{
+	rt_uint32_t	item_count;
+	rt_uint16_t	item_sel;
+	rtgui_radiobox_t **rboxs;
+	rt_uint32_t* bind_var; /* binding user variable */
+};
+
 struct rtgui_radiobox
 {
-	rtgui_container_t parent;
-
+	rtgui_widget_t parent;
 	char* name;
-
-	rt_uint32_t orient;
-	rt_uint32_t	item_count;
-	rt_bool_t item_sel;
-
-	char **items;
+	rtgui_rb_group_t *group;
 };
 
 typedef struct rtgui_radiobox rtgui_radiobox_t;
 
 rtgui_type_t *rtgui_radiobox_type_get(void);
 
-rtgui_radiobox_t* rtgui_radiobox_create(PVOID parent, const char* name, int orient, char **items, int count,
-						int left, int top, int w, int h);
+rtgui_radiobox_t* rtgui_radiobox_create(PVOID parent, const char* name, 
+			int left, int top, int w, int h, rtgui_rb_group_t* group);
 void rtgui_radiobox_destroy(rtgui_radiobox_t* rbox);
-
-void rtgui_radiobox_set_selection(rtgui_radiobox_t* rbox, int selection);
-int rtgui_radiobox_get_selection(rtgui_radiobox_t* rbox);
+rtgui_rb_group_t* rtgui_radiobox_create_group(void);
+rtgui_rb_group_t* rtgui_radiobox_get_group(rtgui_radiobox_t* rbox);
+/* bind a external variable */
+void rtgui_rb_group_bind(rtgui_rb_group_t *group, rt_uint32_t *var);
+/* terminate binding relation */
+void rtgui_rb_group_unbind(rtgui_rb_group_t *group);
+/* set selection in group */
+void rtgui_rb_group_set_sel(rtgui_rb_group_t* group, int selection);
+int rtgui_rb_group_get_sel(rtgui_rb_group_t* group);
 
 rt_bool_t rtgui_radiobox_event_handler(PVOID wdt, rtgui_event_t* event);
 

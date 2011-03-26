@@ -40,10 +40,10 @@ void rtgui_mouse_hide_cursor(void);
 
 rt_bool_t rtgui_mouse_is_intersect(rtgui_rect_t* r);
 
+void rtgui_cursor_set_location(int x, int y);
 #ifdef RTGUI_USING_WINMOVE
 rt_bool_t rtgui_winrect_is_moved(void);
 void rtgui_winrect_set(rtgui_win_t* win);
-void rtgui_cursor_set_location(int x, int y);
 rt_bool_t rtgui_winrect_moved_done(rtgui_rect_t* winrect, rtgui_win_t** win);
 #endif
 

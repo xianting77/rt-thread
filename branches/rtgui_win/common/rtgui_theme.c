@@ -612,56 +612,31 @@ void rtgui_theme_draw_checkbox(rtgui_checkbox_t* checkbox)
 	rtgui_dc_end_drawing(dc);
 }
 
-//static const rt_uint8_t radio_unchecked_byte[] = 
-//{
-//	0x0f, 0x00, 0x30, 0xc0, 0x40, 0x20,
-//	0x40, 0x20,	0x80, 0x10,	0x80, 0x10,
-//	0x80, 0x10,	0x80, 0x10,	0x40, 0x20,
-//	0x40, 0x20,	0x30, 0xc0,	0x0f, 0x00,
-//};
-//static const rt_uint8_t radio_checked_byte[] = 
-//{
-//	0x0f, 0x00, 0x30, 0xc0, 0x40, 0x20, 
-//	0x40, 0x20, 0x86, 0x10, 0x8f, 0x10, 
-//	0x8f, 0x10, 0x86, 0x10, 0x40, 0x20, 
-//	0x40, 0x20, 0x30, 0xc0, 0x0f, 0x00,
-//};
-
-void rtgui_theme_draw_radiobutton(rtgui_radiobox_t* rbox, rt_uint32_t index)
+static const rt_uint8_t radio_unchecked_byte[] = 
 {
-	rtgui_rect_t rect;
-	rtgui_dc_t* dc;
-	
-	RT_ASSERT(rbox != RT_NULL);
-
-	/* begin drawing */
-	dc = rtgui_dc_begin_drawing(rbox);
-	if(dc == RT_NULL)return;
-
-	/* get widget rect */
-	rtgui_widget_get_rect(rbox, &rect);
-
-	if(rbox->orient == RTGUI_HORIZONTAL)
-	{//水平
-		
-		//绘制圆圈
-
-		//绘制text
-
-	}
-	else if(rbox->orient == RTGUI_VERTICAL)
-	{//垂直
-
-	}
-	rtgui_dc_end_drawing(dc);
-}
+	0x0f, 0x00, 0x30, 0xc0, 0x40, 0x20,
+	0x40, 0x20,	0x80, 0x10,	0x80, 0x10,
+	0x80, 0x10,	0x80, 0x10,	0x40, 0x20,
+	0x40, 0x20,	0x30, 0xc0,	0x0f, 0x00,
+};
+static const rt_uint8_t radio_checked_byte[] = 
+{
+	0x0f, 0x00, 0x30, 0xc0, 0x40, 0x20, 
+	0x40, 0x20, 0x86, 0x10, 0x8f, 0x10, 
+	0x8f, 0x10, 0x86, 0x10, 0x40, 0x20, 
+	0x40, 0x20, 0x30, 0xc0, 0x0f, 0x00,
+};
 
 void rtgui_theme_draw_radiobox(rtgui_radiobox_t* rbox)
 {
-	rtgui_rect_t rect;
+	rtgui_rect_t rect,item_rect;
+	rtgui_rb_group_t *group;
 	rtgui_dc_t* dc;
+	rt_base_t len=0,w;
 	
 	RT_ASSERT(rbox != RT_NULL);
+
+	group = rbox->group;
 
 	/* begin drawing */
 	dc = rtgui_dc_begin_drawing(rbox);
@@ -669,17 +644,42 @@ void rtgui_theme_draw_radiobox(rtgui_radiobox_t* rbox)
 
 	/* get widget rect */
 	rtgui_widget_get_rect(rbox, &rect);
+	RTGUI_DC_BC(dc) = default_background;
 	rtgui_dc_fill_rect(dc,&rect);
 
-	if(rbox->orient == RTGUI_HORIZONTAL)
-	{//水平
-
+	item_rect = rect;
+	/* draw radio */
+	item_rect.x2 = item_rect.x1+RADIO_BOX_W;
+	item_rect.y2 = item_rect.y1+RADIO_BOX_H;
+	rtgui_rect_moveto_align(&rect, &item_rect, RTGUI_WIDGET_TEXTALIGN(rbox));
+	rtgui_rect_inflate(&item_rect, -2);
+	RTGUI_DC_FC(dc) = white;
+	w = rtgui_rect_width(item_rect)/2;
+	rtgui_dc_fill_circle(dc, item_rect.x1+w, item_rect.y1+w, w+2);
+	rtgui_rect_inflate(&item_rect, 2);
+	RTGUI_DC_FC(dc) = black;
+	if (*(group->rboxs + group->item_sel) == rbox)
+	{
+		rtgui_dc_draw_word(dc, item_rect.x1, item_rect.y1, RADIO_BOX_H, radio_checked_byte);
 	}
-	else if(rbox->orient == RTGUI_VERTICAL)
-	{//垂直
-
+	else
+	{
+		rtgui_dc_draw_word(dc, item_rect.x1, item_rect.y1, RADIO_BOX_H, radio_unchecked_byte);
 	}
 
+	/* draw text */
+	rtgui_font_get_string_rect(RTGUI_WIDGET_FONT(rbox), rbox->name, &item_rect);
+	len = rtgui_rect_width(item_rect);
+	rtgui_rect_moveto_align(&rect, &item_rect, RTGUI_WIDGET_TEXTALIGN(rbox));
+	item_rect.x1 += RADIO_BOX_H + RTGUI_WIDGET_DEFAULT_MARGIN;
+	item_rect.x2 = item_rect.x1 + len;
+	rtgui_dc_draw_text(dc, rbox->name, &item_rect);
+	
+	if (*(group->rboxs + group->item_sel) == rbox)
+	{/* draw focus rect */
+		if (RTGUI_WIDGET_IS_FOCUSED(RTGUI_WIDGET(rbox)))
+			rtgui_dc_draw_focus_rect(dc, &item_rect);
+	}
 	rtgui_dc_end_drawing(dc);
 }
 

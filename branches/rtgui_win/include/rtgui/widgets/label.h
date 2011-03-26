@@ -37,7 +37,7 @@ typedef struct rtgui_label rtgui_label_t;
 
 rtgui_type_t *rtgui_label_type_get(void);
 
-rtgui_label_t* rtgui_label_create(PVOID wdt, const char* text, int left, int top, int w, int h);
+rtgui_label_t* rtgui_label_create(PVOID parent, const char* text, int left, int top, int w, int h);
 void rtgui_label_destroy(rtgui_label_t* label);
 
 rt_bool_t rtgui_label_event_handler(PVOID wdt, rtgui_event_t* event);
