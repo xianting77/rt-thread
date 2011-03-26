@@ -244,7 +244,6 @@ void rtgui_dc_draw_shaded_rect(struct rtgui_dc* dc, rtgui_rect_t* rect,
     rtgui_dc_draw_vline(dc, rect->x2 - 1, rect->y1, rect->y2);
     rtgui_dc_draw_hline(dc, rect->x1, rect->x2, rect->y2 - 1);
 }
-
 void rtgui_dc_draw_focus_rect(struct rtgui_dc* dc, rtgui_rect_t* rect)
 {
 	int i;
@@ -350,9 +349,7 @@ void rtgui_dc_draw_border(struct rtgui_dc* dc, rtgui_rect_t* rect, int flag)
 
 	case RTGUI_BORDER_EXTRA:
 		rtgui_dc_draw_shaded_rect(dc, &r, light_grey, black);
-
 		rtgui_rect_inflate(&r, -1);
-
 		rtgui_dc_draw_shaded_rect(dc, &r, white, dark);
 		break;
 

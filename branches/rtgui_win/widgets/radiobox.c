@@ -257,11 +257,12 @@ void rtgui_rb_group_set_sel(rtgui_rb_group_t* group, int sel)
 
 	old = group->item_sel;
     if(sel >= 0 && sel < group->item_count)
-    {
     	group->item_sel = sel;
-		if(group->bind_var != RT_NULL)
-			*(group->bind_var) = group->item_sel;
-    }
+	else 
+		group->item_sel = 0;
+
+	if(group->bind_var != RT_NULL)
+		*(group->bind_var) = group->item_sel;
 
     /* update rbox widget */
 	rtgui_theme_draw_radiobox(*(group->rboxs + old));
@@ -306,7 +307,7 @@ static rt_bool_t rtgui_radiobox_unfocus(PVOID wdt, rtgui_event_t* event)
 	{//Çå³ý½¹µã¿ò
 		rtgui_color_t color;
 		color = RTGUI_DC_FC(dc);
-		RTGUI_DC_FC(dc) = default_background;//RTGUI_DC_BC(dc);
+		RTGUI_DC_FC(dc) = default_background;
 		rtgui_dc_draw_focus_rect(dc,&item_rect);
 		RTGUI_DC_FC(dc) = color;
 	}

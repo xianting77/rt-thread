@@ -7,7 +7,7 @@
 static rt_uint32_t rtgui_combo_get_count(rtgui_combo_t* cbo);
 static void rtgui_combo_add_string(rtgui_combo_t* cbo, char* string);
 
-static void _rtgui_combobox_constructor(rtgui_combo_t *cbo)
+static void _rtgui_combo_constructor(rtgui_combo_t *cbo)
 {
 	RTGUI_WIDGET_FLAG(cbo) |= RTGUI_WIDGET_FLAG_FOCUSABLE;
 	cbo->style = RTGUI_COMBO_STYLE_DOWNARROW_UP;
@@ -25,7 +25,7 @@ static void _rtgui_combobox_constructor(rtgui_combo_t *cbo)
 	cbo->add_string = rtgui_combo_add_string;
 }
 
-static void _rtgui_combobox_destructor(rtgui_combo_t *cbo)
+static void _rtgui_combo_destructor(rtgui_combo_t *cbo)
 {
 
 }
@@ -38,8 +38,8 @@ rtgui_type_t *rtgui_combo_type_get(void)
 	{
 		combo_type = rtgui_type_create("combobox", RTGUI_CONTAINER_TYPE,
 			sizeof(rtgui_combo_t),
-			RTGUI_CONSTRUCTOR(_rtgui_combobox_constructor),
-			RTGUI_DESTRUCTOR(_rtgui_combobox_destructor));
+			RTGUI_CONSTRUCTOR(_rtgui_combo_constructor),
+			RTGUI_DESTRUCTOR(_rtgui_combo_destructor));
 	}
 
 	return combo_type;
@@ -51,7 +51,7 @@ rtgui_combo_t* rtgui_combo_create(PVOID parent,const char* text,int left,int top
 	
 	RT_ASSERT(parent != RT_NULL);
 
-    cbo = rtgui_widget_create(RTGUI_COMBOBOX_TYPE);
+    cbo = rtgui_widget_create(RTGUI_COMBO_TYPE);
     if(cbo != RT_NULL)
     {
 		rtgui_rect_t rect;
@@ -61,7 +61,7 @@ rtgui_combo_t* rtgui_combo_create(PVOID parent,const char* text,int left,int top
 		rect.x1 += left;
 		rect.y1 += top;
 		rect.x2 = rect.x1+w;
-		rect.y2 = rect.y1+RTGUI_COMBOBOX_HEIGHT;
+		rect.y2 = rect.y1+RTGUI_COMBO_HEIGHT;
 		rtgui_widget_set_rect(cbo,&rect);
 
 		rtgui_container_add_child(parent, cbo);
@@ -71,7 +71,7 @@ rtgui_combo_t* rtgui_combo_create(PVOID parent,const char* text,int left,int top
 			cbo->tbox = rtgui_textbox_create(cbo,text,
 					RTGUI_WIDGET_BORDER(cbo),
 					RTGUI_WIDGET_BORDER(cbo),
-					w-RTGUI_COMBOBOX_BUTTON_WIDTH-RTGUI_WIDGET_BORDER(cbo)*2,
+					w-RTGUI_COMBO_BUTTON_WIDTH-RTGUI_WIDGET_BORDER(cbo)*2,
 					h-RTGUI_WIDGET_BORDER(cbo)*2,RTGUI_TEXTBOX_NONE);
 
 			if(cbo->tbox == RT_NULL) return RT_NULL;
@@ -85,7 +85,7 @@ rtgui_combo_t* rtgui_combo_create(PVOID parent,const char* text,int left,int top
 	
 			rtgui_widget_get_position(cbo, &point);
 			mleft = point.x;
-			mtop = point.y+RTGUI_COMBOBOX_HEIGHT;
+			mtop = point.y+RTGUI_COMBO_HEIGHT;
 			mwidth = rtgui_widget_get_width(cbo);	
 				
 			//创建下拉列表
@@ -154,7 +154,7 @@ rt_bool_t rtgui_combo_onitem(PVOID wdt, rtgui_event_t* event)
 void rtgui_combo_get_downarrow_rect(rtgui_combo_t* cbo, rtgui_rect_t* rect)
 {
 	rtgui_widget_get_rect(cbo, rect);
-	rect->x1 = rect->x2 - RTGUI_COMBOBOX_BUTTON_WIDTH;
+	rect->x1 = rect->x2 - RTGUI_COMBO_BUTTON_WIDTH;
 }
 
 static rt_uint32_t rtgui_combo_get_count(rtgui_combo_t* cbo)

@@ -532,7 +532,6 @@ void rtgui_widget_update_clip(PVOID wdt)
 	{
 		rtgui_rect_t screen_rect;
 		rtgui_graphic_driver_get_rect(rtgui_graphic_driver_get_default(),&screen_rect);
-		//rtgui_region_intersect_rect(&(widget->clip), &(widget->clip), &(parent->clip.extents));
 		rtgui_region_intersect_rect(&(widget->clip), &(widget->clip), &screen_rect);
 	}
 

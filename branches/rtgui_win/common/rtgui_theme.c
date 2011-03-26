@@ -396,7 +396,7 @@ void rtgui_theme_draw_textbox(rtgui_textbox_t* box)
 	}
 	else
 	{
-		if(RTGUI_IS_COMBOBOX(RTGUI_WIDGET(box)->parent))
+		if(RTGUI_IS_COMBO(RTGUI_WIDGET(box)->parent))
 		{
 			RTGUI_DC_BC(dc) = white;
 			rtgui_dc_fill_rect(dc,&rect);
@@ -919,6 +919,7 @@ void rtgui_theme_draw_slider(rtgui_slider_t* slider)
 		slot_rect.y2 = x0 + xsize;
 		slot_rect.x1 = (slider_rect.x1 + slider_rect.x2) /2 -1;
 		slot_rect.x2 = slot_rect.x1 +3;
+		RTGUI_DC_FC(dc) = black;
 		/* draw slot */
 		rtgui_dc_draw_border(dc, &slot_rect, RTGUI_WIDGET_BORDER_STYLE(slider));
 
@@ -971,19 +972,16 @@ void rtgui_theme_draw_slider(rtgui_slider_t* slider)
 	{
 		RTGUI_DC_FC(dc) = white;
 		rtgui_dc_draw_focus_rect(dc, &focus_rect);
+		RTGUI_DC_FC(dc) = black;
 	}
 
 	rtgui_dc_end_drawing(dc);
 }
 
 const static rt_uint8_t _up_arrow[]    = {0x10, 0x38, 0x7C, 0xFE};
-
 const static rt_uint8_t _down_arrow[]  = {0xFE,0x7C, 0x38, 0x10};
-
 const static rt_uint8_t _left_arrow[]  = {0x10, 0x30, 0x70, 0xF0, 0x70, 0x30, 0x10};
-
 const static rt_uint8_t _right_arrow[] = {0x80, 0xC0, 0xE0, 0xF0, 0xE0, 0xC0, 0x80};
-
 
 void rtgui_theme_draw_scrollbar(rtgui_scrollbar_t* bar)
 {
@@ -1084,11 +1082,12 @@ void rtgui_theme_draw_scrollbar(rtgui_scrollbar_t* bar)
 void rtgui_theme_draw_progressbar(rtgui_progressbar_t* bar)
 {
 	/* draw progress bar */
+	rtgui_dc_t* dc;
 	rtgui_rect_t rect;
     int max = bar->range;
     int pos = bar->position;
     int left;
-	rtgui_dc_t* dc;
+	rtgui_color_t bc;
 	
 	RT_ASSERT(bar != RT_NULL);
 
@@ -1096,6 +1095,7 @@ void rtgui_theme_draw_progressbar(rtgui_progressbar_t* bar)
 	dc = rtgui_dc_begin_drawing(bar);
 	if(dc == RT_NULL)return;
 
+	bc = RTGUI_DC_BC(dc);
 	rtgui_widget_get_rect(&(bar->parent), &rect);
 
 	/* fill button rect with background color */
@@ -1114,16 +1114,17 @@ void rtgui_theme_draw_progressbar(rtgui_progressbar_t* bar)
 	rect.x2 ++; rect.y2 ++;
     left = max - pos;
 	rtgui_rect_inflate(&rect, -2);
-    RTGUI_DC_BC(dc) = RTGUI_RGB(0, 0, 255);
+	RTGUI_DC_BC(dc) = RTGUI_RGB(0, 0, 255);
 
     if(bar->orient == RTGUI_VERTICAL)
     {
         /* Vertical bar grows from bottom to top */
         int dy = (rtgui_rect_height(rect) * left) / max;
         rect.y1 += dy;
-        rtgui_dc_fill_rect(dc,&rect);
+		rtgui_dc_fill_rect(dc,&rect);
 
 		rect.y1 -= dy; rect.y2 = dy;
+		RTGUI_DC_BC(dc) = white;
 		rtgui_dc_fill_rect(dc,&rect);
     }
     else
@@ -1131,11 +1132,13 @@ void rtgui_theme_draw_progressbar(rtgui_progressbar_t* bar)
         /* Horizontal bar grows from left to right */
 		int dx = (rtgui_rect_width(rect) * left) / max;
         rect.x2 -= dx;
-        rtgui_dc_fill_rect(dc,&rect);
+		rtgui_dc_fill_rect(dc,&rect);
 
 		rect.x1 = rect.x2; rect.x2 += dx;
+		RTGUI_DC_BC(dc) = white;
 		rtgui_dc_fill_rect(dc,&rect);
 	}
+	RTGUI_DC_BC(dc) = bc;
 
 	rtgui_dc_end_drawing(dc);
 }
@@ -1245,10 +1248,10 @@ void rtgui_theme_draw_combo(rtgui_combo_t *cbo)
 	rtgui_rect_inflate(&rect,RTGUI_WIDGET_BORDER(cbo));
 	rtgui_dc_draw_border(dc, &rect,RTGUI_WIDGET_BORDER_STYLE(cbo));
 	
-	if(rtgui_rect_height(rect)<RTGUI_COMBOBOX_HEIGHT)return;
+	if(rtgui_rect_height(rect)<RTGUI_COMBO_HEIGHT)return;
 
 	/* draw downarrow button */
-	rect.x1 = rect.x2-RTGUI_COMBOBOX_BUTTON_WIDTH-RTGUI_WIDGET_BORDER(cbo);
+	rect.x1 = rect.x2-RTGUI_COMBO_BUTTON_WIDTH-RTGUI_WIDGET_BORDER(cbo);
 	rect.y1 += RTGUI_WIDGET_BORDER(cbo);
 	rect.x2 -= RTGUI_WIDGET_BORDER(cbo);
 	rect.y2 -= RTGUI_WIDGET_BORDER(cbo);
@@ -1288,7 +1291,7 @@ void rtgui_theme_draw_combo_downarrow(rtgui_combo_t *cbo)
 
 	rtgui_widget_get_rect(cbo, &rect);
 
-	rect.x1 = rect.x2-RTGUI_COMBOBOX_BUTTON_WIDTH-RTGUI_WIDGET_BORDER(cbo);
+	rect.x1 = rect.x2-RTGUI_COMBO_BUTTON_WIDTH-RTGUI_WIDGET_BORDER(cbo);
 	rect.y1 += RTGUI_WIDGET_BORDER(cbo);
 	rect.x2 -= RTGUI_WIDGET_BORDER(cbo);
 	rect.y2 -= RTGUI_WIDGET_BORDER(cbo);

@@ -39,7 +39,7 @@ rtgui_type_t *rtgui_checkbox_type_get(void)
 	return checkbox_type;
 }
 
-rtgui_checkbox_t* rtgui_checkbox_create(PVOID parent,const char* text, rt_bool_t checked,rtgui_color_t fc,int left,int top)
+rtgui_checkbox_t* rtgui_checkbox_create(PVOID parent,const char* text, rt_bool_t checked, int left,int top)
 {
     rtgui_checkbox_t* box;
 	
@@ -65,7 +65,7 @@ rtgui_checkbox_t* rtgui_checkbox_create(PVOID parent,const char* text, rt_bool_t
 		rtgui_widget_set_rect(box, &rect);
 
 		rtgui_checkbox_set_text(box, text);
-		RTGUI_WIDGET_FOREGROUND(box) = fc;
+
 		if(checked == RT_TRUE)
 			box->value = 1;
 		else

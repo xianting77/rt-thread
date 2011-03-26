@@ -9,8 +9,8 @@
 #include <rtgui/widgets/view.h>
 #include <rtgui/widgets/listbox.h>
 
-#define RTGUI_COMBOBOX_HEIGHT				24
-#define RTGUI_COMBOBOX_BUTTON_WIDTH			16
+#define RTGUI_COMBO_HEIGHT					24
+#define RTGUI_COMBO_BUTTON_WIDTH			16
 
 #define RTGUI_COMBO_STYLE_DOWNARROW_UP		0x01
 #define RTGUI_COMBO_STYLE_DOWNARROW_DOWN	0x02
@@ -18,11 +18,11 @@
 typedef	struct rtgui_combo	rtgui_combo_t;
 
 /** Gets the type of a textbox */
-#define RTGUI_COMBOBOX_TYPE       (rtgui_combo_type_get())
+#define RTGUI_COMBO_TYPE       (rtgui_combo_type_get())
 /** Casts the object to a rtgui_textbox_t */
-#define RTGUI_COMBOBOX(obj)       (RTGUI_OBJECT_CAST((obj), RTGUI_COMBOBOX_TYPE, rtgui_combo_t))
+#define RTGUI_COMBO(obj)       (RTGUI_OBJECT_CAST((obj), RTGUI_COMBO_TYPE, rtgui_combo_t))
 /** Checks if the object is a rtgui_textbox_t */
-#define RTGUI_IS_COMBOBOX(obj)    (RTGUI_OBJECT_CHECK_TYPE((obj), RTGUI_COMBOBOX_TYPE))
+#define RTGUI_IS_COMBO(obj)    (RTGUI_OBJECT_CHECK_TYPE((obj), RTGUI_COMBO_TYPE))
 
 typedef struct rtgui_combo_item
 {

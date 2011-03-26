@@ -32,8 +32,6 @@ typedef struct rtgui_event_clip				rtgui_event_clip_t;
 
 typedef struct rtgui_event_mouse			rtgui_event_mouse_t;
 typedef struct rtgui_event_kbd				rtgui_event_kbd_t;
-typedef struct rtgui_event_current_pos		rtgui_event_current_pos_t;//坐标点更新事件
-typedef struct rtgui_event_backlight		rtgui_event_backlight_t;//LCD背光
 typedef struct rtgui_event_command			rtgui_event_command_t;
 typedef struct rtgui_event_scrollbar		rtgui_event_scrollbar_t;
 
