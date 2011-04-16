@@ -47,7 +47,7 @@ struct rtgui_listbox
 	rt_int16_t  		now_aloc;       /* now item */
 	rt_int16_t  		old_aloc;       /* old item */
 	rt_bool_t			ispopup;	    /* 是弹出类型列表 */
-	PVOID 		widgetlnk;		/* 链接的控件 */
+	PVOID 				widgetlnk;		/* 链接的控件 */
 	rtgui_scrollbar_t  	*sbar;
     rtgui_listbox_item_t *items;	    /* items array */
 	
@@ -68,7 +68,7 @@ void rtgui_listbox_update(rtgui_listbox_t* box);
 rt_bool_t rtgui_listbox_event_handler(PVOID wdt, rtgui_event_t* event);
 void rtgui_listbox_set_onitem(rtgui_listbox_t* box, rtgui_event_handler_ptr func);
 void rtgui_listbox_set_items(rtgui_listbox_t* box, rtgui_listbox_item_t* items, rt_uint32_t count);
-
+void rtgui_listbox_update_aloc(rtgui_listbox_t* box, rt_uint16_t aloc);
 void rtgui_listbox_delete_item(rtgui_listbox_t* box, rt_uint32_t item_num);
 
 #endif

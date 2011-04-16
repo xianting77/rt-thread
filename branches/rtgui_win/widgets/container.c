@@ -74,8 +74,8 @@ rt_bool_t rtgui_container_dispatch_event(rtgui_container_t *container, rtgui_eve
 	{
 		rtgui_widget_t* w; 
 		w = rtgui_list_entry(node, rtgui_widget_t, sibling);
-		if(RTGUI_WIDGET_IS_HIDE(w)) continue; //控件是隐藏的则不绘制了
-		//if(RTGUI_IS_WIN(w)) continue;
+		if(RTGUI_WIDGET_IS_HIDE(w)) continue; /* it's hide, respond no to request */
+		
 		if(RTGUI_WIDGET_EVENT_HANDLE(w) != RT_NULL)
 			RTGUI_WIDGET_EVENT_CALL(w, event);
 	}
@@ -87,20 +87,15 @@ rt_bool_t rtgui_container_dispatch_mouse_event(rtgui_container_t *container, rtg
 {
 	/* handle in child widget */
 	rtgui_list_t* node;
-	rtgui_widget_t *focus;
 
-	/* get focus widget on toplevel */
-	focus = RTGUI_CONTAINER(RTGUI_WIDGET(container)->toplevel)->focused;
 	rtgui_list_foreach(node, &(container->children))
 	{
 		rtgui_widget_t* w;
 		w = rtgui_list_entry(node, rtgui_widget_t, sibling);
-		if(RTGUI_WIDGET_IS_HIDE(w))continue;//隐藏的控件不处理
+		if(RTGUI_WIDGET_IS_HIDE(w))continue;/* it's hide, respond no to request */
 
 		if(rtgui_rect_contains_point(&(w->extent), event->x, event->y) == RT_EOK)
-		{//检测到当前点在某个控件内
-			if ((focus != w) && RTGUI_WIDGET_IS_FOCUSABLE(w))
-				rtgui_widget_focus(w);
+		{	/* it maybe nesting, pass on in family from parent to chid  */
 			if(RTGUI_WIDGET_EVENT_HANDLE(w) != RT_NULL)
 				return RTGUI_WIDGET_EVENT_CALL(w,(rtgui_event_t*)event);
 		}
@@ -142,19 +137,20 @@ rt_bool_t rtgui_container_event_handler(PVOID wdt, rtgui_event_t* event)
 					return widget->on_mouseclick(widget, event);
 				}
 			}
-			else return RT_TRUE;
+			else 
+				return RT_TRUE;
 			break;
 	
 		case RTGUI_EVENT_MOUSE_MOTION:
 			if(rtgui_container_dispatch_mouse_event(container,(rtgui_event_mouse_t*)event) == RT_FALSE)
 			{
-	#if 0
+#if 0
 				/* handle event in current widget */
 				if(widget->on_mousemotion != RT_NULL)
 				{
 					return widget->on_mousemotion(widget, event);
 				}
-	#endif
+#endif
 			}
 			else 
 				return RT_TRUE;
@@ -259,7 +255,11 @@ void rtgui_container_remove_child(rtgui_container_t *container, PVOID wdt)
 	/* set parent and top widget */
 	child->parent = RT_NULL;
 	child->toplevel = RT_NULL;
-	rtgui_widget_update_clip(container);
+
+	if(!RTGUI_WIDGET_IS_HIDE(child))
+	{
+		rtgui_widget_update_clip(container);
+	}
 }
 
 /* destroy all child of box */
@@ -292,7 +292,6 @@ void rtgui_container_destroy_children(rtgui_container_t *container)
 		/* destroy object and remove from parent */
 		rtgui_object_destroy(RTGUI_OBJECT(child));
 
-		//node = box->child.next;
 		node = node->next;
 	}
 

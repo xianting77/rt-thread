@@ -345,12 +345,12 @@ void rtgui_widget_focus(PVOID wdt)
 	/* set widget as focused */
 	widget->flag |= RTGUI_WIDGET_FLAG_FOCUS;
 
-	/* 取得旧的根控件和焦点控件 */
+	/* gets root widget */
 	parent = RTGUI_CONTAINER(widget->toplevel);	
 	if(parent->focused == widget) return; /* it's the same focused widget */
 
 	/* unfocused the old widget */
-	if((parent->focused != RT_NULL) && !RTGUI_IS_WIN(parent->focused))	
+	if((parent->focused != RT_NULL))// && !RTGUI_IS_WIN(parent->focused))	
 		rtgui_widget_unfocus(parent->focused);
 
 	/* set widget as focused widget in parent link */
@@ -379,7 +379,7 @@ void rtgui_widget_unfocus(PVOID wdt)
 		return;
 
 	widget->flag &= ~RTGUI_WIDGET_FLAG_FOCUS;
-
+	
 	if(widget->on_focus_out != RT_NULL)
    		widget->on_focus_out(widget, RT_NULL);
 		
@@ -393,9 +393,6 @@ void rtgui_widget_unfocus(PVOID wdt)
 			rtgui_widget_unfocus(child);
 		}
 	}
-
-	/* refresh widget 刷新控件 */
-	//rtgui_widget_update(widget);//要除去该句,避免重复刷新
 }
 
 void rtgui_widget_point_to_device(PVOID wdt, rtgui_point_t* point)
@@ -528,7 +525,6 @@ void rtgui_widget_update_clip(PVOID wdt)
 	rtgui_region_reset(&(widget->clip), &(widget->extent));
 	
 	/* limit widget extent in screen extent */
-	//rtgui_region_intersect(&(widget->clip), &(widget->clip), &(parent->clip));
 	{
 		rtgui_rect_t screen_rect;
 		rtgui_graphic_driver_get_rect(rtgui_graphic_driver_get_default(),&screen_rect);
@@ -603,6 +599,18 @@ void rtgui_widget_update_clip_pirate(PVOID wdt,PVOID topwdt)
 		}
 	}
 
+	if(external_clip_size > 0)	
+	{
+		rt_int32_t i;
+		rtgui_rect_t *rect;
+		rect = external_clip_rect;
+		for(i=0;i<external_clip_size;i++)
+		{
+			rtgui_region_subtract_rect(&(widget->clip), &(widget->clip),rect);
+			rect++;
+		}
+	}
+
 	{
 		rtgui_rect_t screen_rect;
 		rtgui_graphic_driver_get_rect(rtgui_graphic_driver_get_default(),&screen_rect);
@@ -615,7 +623,7 @@ void rtgui_widget_update_clip_pirate(PVOID wdt,PVOID topwdt)
 		{	
 			rtgui_widget_t *child = rtgui_list_entry(node, rtgui_widget_t, sibling);
 			if(RTGUI_WIDGET_IS_HIDE(child))continue;
-			if(RTGUI_IS_WIN(child))continue; /* no dispose windows */
+			//if(RTGUI_IS_WIN(child))continue; /* no dispose windows */
 
 			rtgui_region_subtract_rect(&(widget->clip), &(widget->clip),&(child->extent));
 			rtgui_widget_update_clip_pirate(child,topwdt);
@@ -717,7 +725,7 @@ void rtgui_widget_update(PVOID wdt)
 	}
 }
 
-//获得下一个兄弟控件
+/* get the next sibling of widget */
 rtgui_widget_t* rtgui_widget_get_next_sibling(PVOID wdt)
 {
 	rtgui_widget_t* sibling = RT_NULL;
@@ -731,7 +739,7 @@ rtgui_widget_t* rtgui_widget_get_next_sibling(PVOID wdt)
 	return sibling;
 }
 
-//获得上一个兄弟控件
+/* get the prev sibling of widget */
 rtgui_widget_t* rtgui_widget_get_prev_sibling(PVOID wdt)
 {
 	rtgui_list_t* node;

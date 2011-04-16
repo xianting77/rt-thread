@@ -173,7 +173,7 @@ rt_bool_t rtgui_button_event_handler(PVOID wdt, rtgui_event_t* event)
 					{
 						/* call on button handler */
 						btn->on_button(widget, event);
-					}
+					}  
 				}
 	
 				return RT_TRUE;

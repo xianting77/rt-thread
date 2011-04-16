@@ -28,30 +28,30 @@
 #define RTGUI_WIN_CLOSEBOX_WIDTH	16
 #define RTGUI_WIN_CLOSEBOX_HEIGHT  	16
 
-#define RTGUI_WIN_TITLE_HEIGHT	 	20	//标题栏高度
-#define RTGUI_WIN_STATUS_HEIGHT	 	20	//状态栏高度
-#define RTGUI_WIN_MENU_HEIGHT		20  //菜单栏高度
+#define RTGUI_WIN_TITLE_HEIGHT	 	20	/* title height */
+#define RTGUI_WIN_STATUS_HEIGHT	 	20	/* status bar height */
+#define RTGUI_WIN_MENU_HEIGHT		20  /* menu bar height */
 
-//窗口的状态
-#define RTGUI_WIN_STATUS_MODAL	 	(1ul << 0)	//模式窗口
-#define RTGUI_WIN_STATUS_MIN		(1ul << 1)
-#define RTGUI_WIN_STATUS_MAX		(1ul << 2)	//窗口处于最大化状态
-#define RTGUI_WIN_STATUS_CLOSED	 	(1ul << 3)	//关闭的
-#define RTGUI_WIN_STATUS_ACTIVATE	(1ul << 4)	//活动的
-#define RTGUI_WIN_STATUS_FOCUS	 	(1ul << 5)	//获得焦点的
+/* window status */
+#define RTGUI_WIN_STATUS_MODAL	 	(1ul << 0)	/* modal status */
+#define RTGUI_WIN_STATUS_MIN		(1ul << 1)	/* mninmux status */
+#define RTGUI_WIN_STATUS_MAX		(1ul << 2)	/* maximum status */
+#define RTGUI_WIN_STATUS_CLOSED	 	(1ul << 3)	/* closed status */
+#define RTGUI_WIN_STATUS_ACTIVATE	(1ul << 4)	/* activate status */
+#define RTGUI_WIN_STATUS_FOCUS	 	(1ul << 5)	/* focused status */
 
 #define RTGUI_WIN_IS_MODAL_MODE(w)	(w->status & RTGUI_WIN_STATUS_MODAL)
-//窗口的样式,属性
-#define RTGUI_WIN_TITLE			 	(1ul << 1)	//标题栏
-#define RTGUI_WIN_STATUS			(1ul << 2)	//状态栏
-#define RTGUI_WIN_MENU			 	(1ul << 3)	//菜单栏
-#define RTGUI_WIN_BORDER			(1ul << 4)	//边框
-#define RTGUI_WIN_MINBOX			(1ul << 5)	//最小化按钮
-#define RTGUI_WIN_MAXBOX			(1ul << 6)	//最大化按钮
-#define RTGUI_WIN_CLOSEBOX		 	(1ul << 7)	//关闭按钮
-#define RTGUI_WIN_MINBOX_PRESSED	(1ul << 8)
-#define RTGUI_WIN_MAXBOX_PRESSED	(1ul << 9)
-#define RTGUI_WIN_CLOSEBOX_PRESSED 	(1ul << 10)  //关闭按钮被按下
+/* window style */
+#define RTGUI_WIN_TITLE			 	(1ul << 1)	/* use title bar */
+#define RTGUI_WIN_STATUS			(1ul << 2)	/* use status bar */
+#define RTGUI_WIN_MENU			 	(1ul << 3)	/* use status menu bar */
+#define RTGUI_WIN_BORDER			(1ul << 4)	/* use border	 */
+#define RTGUI_WIN_MINBOX			(1ul << 5)	/* use minimum button */
+#define RTGUI_WIN_MAXBOX			(1ul << 6)	/* use maximum button */
+#define RTGUI_WIN_CLOSEBOX		 	(1ul << 7)	/* use close button	*/
+#define RTGUI_WIN_MINBOX_PRESSED	(1ul << 8)	/* minimum button pressed */
+#define RTGUI_WIN_MAXBOX_PRESSED	(1ul << 9)	/* maximum button pressed */
+#define RTGUI_WIN_CLOSEBOX_PRESSED 	(1ul << 10) /* close button pressed */
 
 #define RTGUI_WIN_NOBORDER	(0)
 #define RTGUI_WIN_NOTITLE	(RTGUI_WIN_BORDER)
@@ -59,6 +59,14 @@
 #define RTGUI_WIN_DIALOG	(RTGUI_WIN_BORDER|RTGUI_WIN_TITLE|RTGUI_WIN_CLOSEBOX|RTGUI_WIN_MINBOX)
 #define RTGUI_WIN_NORMAL	(RTGUI_WIN_BORDER|RTGUI_WIN_TITLE|RTGUI_WIN_CLOSEBOX|RTGUI_WIN_MINBOX|RTGUI_WIN_MAXBOX)
 
+/* define window level layer */
+typedef enum  rtgui_window_level
+{
+	RTGUI_WIN_LEVEL_NORMAL=0,       /* common window level */
+	RTGUI_WIN_LEVEL_CHILD,          /* child window level  */
+	RTGUI_WIN_LEVEL_POPUP,          /* popup window level  */
+	RTGUI_WIN_LEVEL_EXPERT,         /* expert window level */
+}rtgui_win_level_t;
 
 struct rtgui_win_title;
 struct rtgui_win_area;
@@ -66,32 +74,25 @@ struct rtgui_win_area;
 struct rtgui_win
 {
 	/* inherit from top */
-	rtgui_container_t 		parent;
-
-	/* window title */
-	char* 		title;
-	
-	/* parent top */
-	PVOID		modal_widget;
-	rtgui_list_t 		list; /* window list */
+	rtgui_container_t 	parent;
+	char*               title;			/* window title */
+	rtgui_win_level_t	level;          /* window level */
+	PVOID               modal_widget;   /* parent top */
+	rtgui_list_t        list;           /* window list */
 
 	/* the thread id */
-	struct rt_thread*	tid;	//所在线程
+	struct rt_thread*	tid;            /* binding thread */
 	
-	rt_uint32_t style;			//窗口的样式
-	rt_uint32_t status;			//窗口的状态
-	rt_uint16_t	title_height;	//标题栏高度
-	rt_uint16_t	status_height;	//状态栏高度
-	rt_uint16_t	menu_height;	//菜单栏高度
-	rt_uint16_t	border_size;	//窗体边框宽度
+	rt_uint32_t style;                  /* window style */
+	rt_uint32_t status;                 /* window status */
+	rt_uint16_t	title_height;           /* title bar height */
+	rt_uint16_t	status_height;          /* status bar height */
+	rt_uint16_t	menu_height;            /* menu bar height */
 
 	/* call back */
 	rt_bool_t (*on_activate)(PVOID wdt, rtgui_event_t* event);
 	rt_bool_t (*on_deactivate)(PVOID wdt, rtgui_event_t* event);
 	rt_bool_t (*on_close)(PVOID wdt, rtgui_event_t* event);
-
-	/* reserved user data */
-	void* user_data;
 };
 
 rtgui_type_t *rtgui_win_type_get(void);
@@ -102,7 +103,7 @@ void rtgui_win_close(PVOID wdt, rtgui_event_t *event);
 rt_bool_t rtgui_win_ondraw(rtgui_win_t* win);
 
 void rtgui_win_show(rtgui_win_t* win, rt_bool_t modal);
-void rtgui_win_hiden(rtgui_win_t* win);
+void rtgui_win_hide(rtgui_win_t* win);
 void rtgui_win_end_modal(rtgui_win_t* win);
 
 rt_bool_t rtgui_win_is_activated(rtgui_win_t* win);

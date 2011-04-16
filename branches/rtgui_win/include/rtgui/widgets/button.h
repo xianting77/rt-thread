@@ -36,11 +36,11 @@ extern "C" {
 /** Checks if the object is an rtgui_button_t */
 #define RTGUI_IS_BUTTON(obj)    (RTGUI_OBJECT_CHECK_TYPE((obj), RTGUI_BUTTON_TYPE))
 
-#define RTGUI_BUTTON_FLAG_PRESS		0x01
-#define RTGUI_BUTTON_FLAG_DEFAULT		0x02
+#define RTGUI_BUTTON_FLAG_PRESS     0x01
+#define RTGUI_BUTTON_FLAG_DEFAULT   0x02
 
-#define RTGUI_BUTTON_TYPE_NORMAL		0x00
-#define RTGUI_BUTTON_TYPE_PUSH		0x10
+#define RTGUI_BUTTON_TYPE_NORMAL    0x00
+#define RTGUI_BUTTON_TYPE_PUSH      0x10
 
 /*
  * the button widget

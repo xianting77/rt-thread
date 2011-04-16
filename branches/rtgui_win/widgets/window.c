@@ -20,11 +20,16 @@
 #include <rtgui/widgets/button.h>
 #include <rtgui/rtgui_theme.h>
 
+static rt_bool_t rtgui_win_onfocus(PVOID wdt, rtgui_event_t* event);
+static rt_bool_t rtgui_win_onunfocus(PVOID wdt, rtgui_event_t* event);
 
 static void _rtgui_win_constructor(rtgui_win_t *win)
 {
 	/* init window attribute */
+	rtgui_widget_set_onfocus(win, rtgui_win_onfocus);
+	rtgui_widget_set_onunfocus(win, rtgui_win_onunfocus);
 	win->title			= RT_NULL;
+	win->level			= RTGUI_WIN_LEVEL_NORMAL;
 	win->on_activate	= RT_NULL;
 	win->on_deactivate	= RT_NULL;
 	win->on_close		= RT_NULL;
@@ -42,9 +47,6 @@ static void _rtgui_win_constructor(rtgui_win_t *win)
 	win->status  = 0;
 	win->style = RTGUI_WIN_DEFAULT;
 	rtgui_widget_set_event_handler(win, rtgui_win_event_handler);
-
-	/* init user data */
-	win->user_data = RT_NULL;
 }
 
 static void _rtgui_win_destructor(rtgui_win_t* win)
@@ -115,8 +117,6 @@ rtgui_win_t* rtgui_win_create(PVOID parent, const char* title, rtgui_rect_t *rec
 		win->title_height = RTGUI_WIN_TITLE_HEIGHT;
 		win->status_height= RTGUI_WIN_STATUS_HEIGHT;
 		win->menu_height  = RTGUI_WIN_MENU_HEIGHT;
-		win->border_size  = RTGUI_BORDER_DEFAULT_WIDTH;
-
 		
 		RTGUI_WIDGET(win)->toplevel = RTGUI_WIDGET(win); //窗口自身作为顶级控件
 		/* set extent of win */
@@ -288,7 +288,7 @@ void rtgui_win_end_modal(rtgui_win_t* win)
 	win->status &= ~RTGUI_WIN_STATUS_MODAL;
 }
 
-void rtgui_win_hiden(rtgui_win_t* win)
+void rtgui_win_hide(rtgui_win_t* win)
 {
 	RT_ASSERT(win != RT_NULL);
 
@@ -325,9 +325,6 @@ void rtgui_win_move(rtgui_win_t* win, int x, int y)
 
 	if (win == RT_NULL) return;
 
-	/* set win hide firstly */
-//	RTGUI_WIDGET_HIDE(RTGUI_WIDGET(win));
-
 	emove.wid 	= win;
 	emove.x		= x;
 	emove.y		= y;
@@ -336,16 +333,6 @@ void rtgui_win_move(rtgui_win_t* win, int x, int y)
 	{
 		return;
 	}
-
-//	/* move window to logic position */
-//	rtgui_widget_move_to_logic(win,
-//		x - RTGUI_WIDGET(win)->extent.x1,
-//		y - RTGUI_WIDGET(win)->extent.y1);
-//
-//	/* set window visible */
-//	RTGUI_WIDGET_UNHIDE(win);
-	return;
-
 }
 
 rt_bool_t rtgui_win_ondraw(rtgui_win_t* win)
@@ -634,6 +621,32 @@ char* rtgui_win_get_title(rtgui_win_t* win)
 	return win->title;
 }
 
+static rt_bool_t rtgui_win_onfocus(PVOID wdt, rtgui_event_t* event)
+{
+	rtgui_win_t *win = wdt;
+
+	/* window catch focus, it turned status into activate */
+	if(!rtgui_win_is_activated(win))
+	{
+		rtgui_topwin_activate(win);
+	}
+
+	return RT_TRUE;
+}
+
+static rt_bool_t rtgui_win_onunfocus(PVOID wdt, rtgui_event_t* event)
+{
+	rtgui_win_t *win = wdt;
+
+	/* window lose focus, it turned status into deactivate */
+	if(rtgui_win_is_activated(win))
+	{
+		rtgui_topwin_deactivate(win);
+	}
+
+	return RT_TRUE;
+}
+
 rtgui_point_t rtgui_win_get_client_zero(rtgui_win_t *win)
 {
 	rtgui_point_t p={0};
@@ -653,7 +666,7 @@ void rtgui_win_get_client_rect(rtgui_win_t *win, rtgui_rect_t *rect)
 	rtgui_widget_get_rect(win, rect);
 
 	if(win->style & RTGUI_WIN_BORDER)
-		rtgui_rect_inflate(rect, -win->border_size);
+		rtgui_rect_inflate(rect, -RTGUI_WIDGET_BORDER(win));
 	
 	if(win->style & RTGUI_WIN_TITLE)//有标题栏则减去标题栏的高度
 		rect->y1 += win->title_height;
@@ -675,7 +688,7 @@ void rtgui_win_get_title_rect(rtgui_win_t *win, rtgui_rect_t *rect)
 	{
 		if(win->style & RTGUI_WIN_BORDER)
 		{
-			rtgui_rect_inflate(rect, -win->border_size);
+			rtgui_rect_inflate(rect, -RTGUI_WIDGET_BORDER(win));
 		}
 		rect->y2 = rect->y1 + win->title_height;
 	}

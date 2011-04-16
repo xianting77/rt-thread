@@ -11,7 +11,7 @@
  * Date           Author       Notes
  * 2010-01-06     Bernard      first version
  */
-
+#include <panel.h>
 #include <rtgui/rtgui_theme.h>
 #include <rtgui/widgets/listbox.h>
 
@@ -629,13 +629,16 @@ static void rtgui_listbox_add_item(rtgui_listbox_t* box,rtgui_listbox_item_t* it
 
 	if(box->item_count==0)
 	{
-		_items = rt_malloc(sizeof(rtgui_listbox_item_t)*(box->item_count+1));
-	}
-	else
-	{
-		_items = rt_realloc(box->items,sizeof(rtgui_listbox_item_t)*(box->item_count+1));
+		rtgui_listbox_set_items(box, item, 1);
+		if(!RTGUI_WIDGET_IS_HIDE(box))
+		{
+			rtgui_listbox_ondraw(box);
+		}
+		return;
 	}
 	
+	_items = rt_realloc(box->items,sizeof(rtgui_listbox_item_t)*(box->item_count+1));
+
 	if(_items != RT_NULL)	
 	{
 		box->items = _items;
@@ -645,6 +648,7 @@ static void rtgui_listbox_add_item(rtgui_listbox_t* box,rtgui_listbox_item_t* it
 		
 		if(box->sbar != RT_NULL)		
 		{
+			rtgui_panel_t *panel = rtgui_panel_get();
 			if(RTGUI_WIDGET_IS_HIDE(box->sbar))
 			{
 				if(box->item_count > box->item_per_page)
@@ -659,6 +663,21 @@ static void rtgui_listbox_add_item(rtgui_listbox_t* box,rtgui_listbox_item_t* it
 					RTGUI_WIDGET_HIDE(box->sbar);
 				}
 				rtgui_widget_update_clip(box);
+				if(external_clip_size > 0)
+				{
+					rt_int32_t i;
+					rtgui_rect_t *rect = external_clip_rect;
+					for(i=0;i<external_clip_size;i++)
+					{
+						if(rtgui_rect_is_intersect(rect, &RTGUI_WIDGET_EXTENT(box)) == RT_EOK)
+						{
+							rtgui_panel_update_clip(panel);
+							rtgui_panel_redraw(&RTGUI_WIDGET_EXTENT(box));
+							break;
+						}
+						rect++;
+					}	
+				}
 			}
 			else
 			{
@@ -667,7 +686,9 @@ static void rtgui_listbox_add_item(rtgui_listbox_t* box,rtgui_listbox_item_t* it
 		}
 		
 		if(!RTGUI_WIDGET_IS_HIDE(box))
+		{
 			rtgui_listbox_ondraw(box);
+		}
 	}
 }
 
@@ -676,18 +697,53 @@ static rt_uint32_t rtgui_listbox_get_item_count(rtgui_listbox_t* box)
 	return box->item_count;
 }
 
+/* update listbox with assign row */
+void rtgui_listbox_update_aloc(rtgui_listbox_t* box, rt_uint16_t aloc)
+{
+	if(box != RT_NULL)
+	{
+		if(aloc > (box->item_count-1)) return;
+		if(box->item_count > box->item_per_page)
+		{
+			if((aloc+box->item_per_page) > (box->item_count-1))
+			{	
+				box->now_aloc = aloc;
+				box->old_aloc = aloc;
+				box->frist_aloc = box->item_count-box->item_per_page;
+			} 
+			else
+			{	
+				box->now_aloc = aloc;
+				box->old_aloc = aloc;
+				box->frist_aloc = aloc;	
+			}
+		}
+		else
+		{
+			box->now_aloc = aloc;
+		}
+		
+		rtgui_listbox_ondraw(box);
+		
+		if(!RTGUI_WIDGET_IS_HIDE(box->sbar))
+		{
+			rtgui_scrollbar_set_value(box->sbar, box->frist_aloc);
+		}
+	}
+}
+
 static rt_bool_t rtgui_listbox_unfocus(PVOID wdt, rtgui_event_t* event)
 {
 	rtgui_listbox_t *box = (rtgui_listbox_t*)wdt;
 	if(box == RT_NULL)return RT_FALSE;
 
 	if(!RTGUI_WIDGET_IS_FOCUSED(box))
-	{//清除焦点框
+	{/* clear focus rectangle */
 		rtgui_listbox_update(RTGUI_LISTBOX(wdt));
 	}
 
 	if(box->ispopup)
-	{//是弹出列表,说明是挂在一些控件(例如combo)下的
+	{/* this is a popup listbox ,so it hang on the parent widget */
 		rtgui_win_t *win;
 
 		RTGUI_WIDGET_HIDE(box);
@@ -698,7 +754,7 @@ static rt_bool_t rtgui_listbox_unfocus(PVOID wdt, rtgui_event_t* event)
 		//rtgui_widget_update_clip_pirate(RTGUI_WIDGET_PARENT(box),box);
 		win = rtgui_win_get_win_by_widget(box);
 		if(win != RT_NULL)
-		{//在一个窗口中
+		{/* it in a window box */
 			if(rtgui_rect_is_intersect(&(RTGUI_WIDGET_EXTENT(win)), 
 				&(RTGUI_WIDGET_EXTENT(box))) == RT_EOK)
 			{
@@ -718,7 +774,7 @@ static rt_bool_t rtgui_listbox_sbar_handle(PVOID wdt, rtgui_event_t* event)
 {
 	rtgui_listbox_t *box = (rtgui_listbox_t*)wdt;
 
-	//拖动时，改变第一行
+	/* adjust frist display row when dragging */
 	box->frist_aloc = box->sbar->value;	
 
 	rtgui_listbox_ondraw(box);	

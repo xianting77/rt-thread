@@ -64,7 +64,7 @@ void rtgui_theme_draw_scrollbar(rtgui_scrollbar_t* bar);
 void rtgui_theme_draw_progressbar(rtgui_progressbar_t* bar);
 void rtgui_theme_draw_staticline(rtgui_staticline_t* sline);
 
-void rtgui_theme_draw_selected(rtgui_dc_t *dc, rtgui_color_t *color, rtgui_rect_t *rect);
+void rtgui_theme_draw_selected(rtgui_dc_t *dc, rtgui_rect_t *rect);
 
 rtgui_color_t rtgui_theme_default_bc(void);//default black ground color
 rtgui_color_t rtgui_theme_default_fc(void);

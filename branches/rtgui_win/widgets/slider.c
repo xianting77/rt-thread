@@ -9,11 +9,9 @@
 
 static void _rtgui_slider_constructor(rtgui_slider_t *slider)
 {
-	rtgui_rect_t rect = {0, 0, RTGUI_SLIDER_DEFAULT_WIDTH, RTGUI_SLIDER_DEFAULT_HEIGHT};
-
 	/* init widget and set event handler */
 	RTGUI_WIDGET_FLAG(slider) |= RTGUI_WIDGET_FLAG_FOCUSABLE;
-	rtgui_widget_set_rect(slider, &rect);
+	rtgui_widget_set_style(slider, RTGUI_BORDER_RAISE);
 	rtgui_widget_set_event_handler(slider, rtgui_slider_event_handler);
 
 	/* set proper of control */

@@ -18,7 +18,7 @@
 #include <rtgui/event.h>
 #include <rtgui/rtgui_server.h>
 
-
+void rtgui_win_insert(rtgui_list_t *list, rtgui_win_t *win);
 rt_err_t rtgui_topwin_add(rtgui_win_t* win); /* add a top win */
 rt_err_t rtgui_topwin_remove(rtgui_win_t* win);	/* remove a top win */
 rt_err_t rtgui_topwin_raise(rtgui_win_t* win); /* raise window to front */

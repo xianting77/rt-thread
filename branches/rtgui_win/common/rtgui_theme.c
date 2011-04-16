@@ -57,7 +57,7 @@ void rtgui_theme_draw_win_closebox(rtgui_win_t *win)
 	if(dc == RT_NULL)return;
 
 	if(win->style & RTGUI_WIN_CLOSEBOX)
-	{//绘制关闭按钮
+	{/* draw close box */
 		rtgui_rect_t rect;
 		/* get close button rect */
 		rtgui_win_get_closebox_rect(win, &rect);	
@@ -91,7 +91,7 @@ void rtgui_theme_draw_win_maxbox(rtgui_win_t *win)
 	if(dc == RT_NULL)return;
 
 	if(win->style & RTGUI_WIN_MAXBOX)
-	{//最大化按钮
+	{/* maximum button */
 		rtgui_rect_t rect;
 		rtgui_win_get_maxbox_rect(win, &rect);
 		rtgui_dc_fill_rect(dc, &rect);
@@ -173,14 +173,14 @@ void rtgui_theme_draw_win_title(rtgui_win_t *win)
 	{
 		rt_uint32_t i,j;
 		rtgui_rect_t rect; 
-		//float r, g, b, delta;
+		/* float r, g, b, delta; */
 		rtgui_color_t color;
 
 		rtgui_win_get_title_rect(win, &rect);
 
 		if((win->status & RTGUI_WIN_STATUS_ACTIVATE))
 		{
-			//color = RTGUI_RGB(10, 36, 106);
+			/* color = RTGUI_RGB(10, 36, 106); */
 			for(i = rect.y1,j=0; i < rect.y2; i ++,j++)
 			{
 				RTGUI_DC_FC(dc) = RTGUI_RGB(TABLE_VARY_COLOR[j][0],TABLE_VARY_COLOR[j][1],TABLE_VARY_COLOR[j][2]);
@@ -208,8 +208,8 @@ void rtgui_theme_draw_win_title(rtgui_win_t *win)
 		RTGUI_DC_TEXTALIGN(dc) = RTGUI_ALIGN_LEFT;
 		rtgui_dc_draw_text(dc,win->title, &rect);
 
-		if(win->style & RTGUI_WIN_BORDER)//恢复原来的尺寸(前面缩放处理过)
-			rtgui_rect_inflate(&rect, win->border_size);
+		if(win->style & RTGUI_WIN_BORDER)/* 恢复原来的尺寸(前面缩放处理过) */
+			rtgui_rect_inflate(&rect, RTGUI_WIDGET_BORDER(win));
 
 		rtgui_theme_draw_win_closebox(win);
 		rtgui_theme_draw_win_maxbox(win);
@@ -259,9 +259,8 @@ void rtgui_theme_draw_win(rtgui_win_t* win)
 	}
 
 	rtgui_theme_draw_win_title(win);
-	//填充客户区背景色
+	/* fill client rect background color */
 	rtgui_win_get_client_rect(win,&rect);
-
 	rtgui_dc_fill_rect(dc,&rect);
 
 	rtgui_dc_end_drawing(dc);
@@ -296,8 +295,6 @@ void rtgui_theme_draw_button(rtgui_button_t* btn)
 			image_rect.x2 = btn->image->w;
 			image_rect.y2 = btn->image->h;
 			rtgui_rect_moveto_align(&rect, &image_rect, RTGUI_ALIGN_CENTER_HORIZONTAL|RTGUI_ALIGN_CENTER_VERTICAL);
-
-			//rtgui_image_blit(btn->image, dc, &image_rect);
 			rtgui_image_paste(btn->image, dc, &image_rect,white);
 		}
 	}
@@ -311,12 +308,11 @@ void rtgui_theme_draw_button(rtgui_button_t* btn)
 			image_rect.x2 = btn->image->w;
 			image_rect.y2 = btn->image->h;
 			rtgui_rect_moveto_align(&rect, &image_rect, RTGUI_ALIGN_CENTER_HORIZONTAL|RTGUI_ALIGN_CENTER_VERTICAL);
-			//rtgui_image_blit(btn->image, dc, &image_rect);
 			rtgui_image_paste(btn->image, dc, &image_rect,white);
 		}
 		else
 		{
-			//绘制"常规"状态下的边框
+			/* draw normal status border */
 			rtgui_dc_draw_border(dc, &rect,RTGUI_WIDGET_BORDER_STYLE(btn));
 		}
 	}
@@ -343,7 +339,7 @@ void rtgui_theme_draw_button(rtgui_button_t* btn)
 		/* re-set foreground and get default rect */
 		rtgui_widget_get_rect(btn, &rect);
 		rtgui_rect_inflate(&rect, -2);
-		rtgui_dc_draw_focus_rect(dc,&rect);
+		rtgui_dc_draw_focus_rect(dc,&rect);	
 	}
 
 	rtgui_dc_end_drawing(dc);
@@ -417,59 +413,59 @@ void rtgui_theme_draw_textbox(rtgui_textbox_t* box)
 	{
 		rect.x1 += RTGUI_WIDGET_DEFAULT_MARGIN;
 		if(box->flag & RTGUI_TEXTBOX_MULTI)
-		{//多行文本
+		{/* draw multiline text */
 			int start,end,alllen,fh,fw,rw;
-			fw  = rtgui_font_get_font_width(RTGUI_WIDGET_FONT(box));  //字体宽度
-			fh  = rtgui_font_get_font_height(RTGUI_WIDGET_FONT(box)); //字体高度
-			rw  = rtgui_rect_width(rect); //编辑框文字区域可包含的字符个数
-			alllen = rt_strlen(box->text);//文本总长度
+			fw  = rtgui_font_get_font_width(RTGUI_WIDGET_FONT(box));
+			fh  = rtgui_font_get_font_height(RTGUI_WIDGET_FONT(box));
+			rw  = rtgui_rect_width(rect); 
+			alllen = rt_strlen(box->text);/* all character length */
 			start=end=0;
 			rect.y1 += 2;
 			while(end<alllen)
-			{//查找字符串中是否有换行符
+			{/* is line feed? */
 				if(*(box->text+end) == '\n')
 				{
 					int i, mlen;
 					char* string;
 
 					end++;
-					mlen = end-start;//一整行(以\n结尾)的长度
+					mlen = end-start;
 					
-					//为了使用函数rtgui_dc_draw_text(),需要提取出一行再手工添加\0
-					string = rt_malloc(mlen);//临时缓存
+					/* we use rtgui_dc_draw_text(),need remake string,add '\0' at ending */
+					string = rt_malloc(mlen);
 					for(i=0;i<mlen;i++)
 					{
-						if(box->flag & RTGUI_TEXTBOX_MASK) //密文
+						if(box->flag & RTGUI_TEXTBOX_MASK) /* ciphertext */
 							string[i] = '*';
-						else						 //明文
+						else			
 							string[i] = *(box->text+start+i);
-						if(i==(mlen-1))string[i] = '\0';//手工添加\0
+						if(i==(mlen-1))string[i] = '\0';/* add '\0' by oneself */
 					}
 					RTGUI_DC_FC(dc) = black;
-					//绘制一个完整行(以\n结尾),如果行长度超过控件宽度,要自动换行
+					
 					for(i=0;i<mlen;)
 					{
-						int linelen = rw/fw;//一行可以显示的字符数
+						int linelen = rw/fw;
 						rect.y2 = rect.y1+fh;
 						
 						if(linelen > mlen)
-						{//行长度小于控件宽度所容纳字符数的情况
+						{
 							linelen = mlen;
 							RTGUI_DC_FC(dc) = black;
 							rtgui_dc_draw_text(dc, string+i, &rect);
 						}
 						else 
-						{//自动换行的情况
+						{/* auto-line feed */
 							int k;
-							char* tmpstr = rt_malloc(linelen+1);//临时缓存
-							rt_kprintf("1.\n");
+							char* tmpstr = rt_malloc(linelen+1);/* temporary memory */
+
 							for(k=0;k<(linelen+1);k++)
 							{
-								if(box->flag & RTGUI_TEXTBOX_MASK) //密文
+								if(box->flag & RTGUI_TEXTBOX_MASK) /* ciphertext */
 									tmpstr[k] = '*';
-								else						 //明文
+								else						 /* plain code text */
 									tmpstr[k] = *(string+i+k);
-								if(k==linelen)tmpstr[k]='\0';//手工添加\0
+								if(k==linelen)tmpstr[k]='\0';/* add '\0' by oneself */
 							}
 							RTGUI_DC_FC(dc) = black;
 							rtgui_dc_draw_text(dc, tmpstr, &rect);
@@ -480,13 +476,13 @@ void rtgui_theme_draw_textbox(rtgui_textbox_t* box)
 					}
 					rt_free(string);
 
-					start = end;//设置下一个完整行的开始
+					start = end;/* next line start position */
 				}
 				end++;
 			}
 		}
 		else
-		{//单行文本
+		{/* draw single text */
 			RTGUI_DC_FC(dc) = black;
 			if(box->flag & RTGUI_TEXTBOX_MASK)
 			{
@@ -570,7 +566,7 @@ void rtgui_theme_draw_checkbox(rtgui_checkbox_t* checkbox)
 	rtgui_dc_fill_rect(dc,&rect);
 
 	if(RTGUI_WIDGET_IS_FOCUSED(checkbox))
-	{//只绘制包围字符串的焦点框
+	{/* only draw focus rect surround string */
 		rtgui_rect_t tmp_rect;
 		rtgui_font_get_string_rect(RTGUI_WIDGET_FONT(checkbox), rtgui_label_get_text(RTGUI_LABEL(checkbox)), &tmp_rect);
 		
@@ -688,7 +684,6 @@ static const rt_uint8_t menu_popup_byte[7] = {0x40,0x60,0x70,0x78,0x70,0x60,0x40
 void rtgui_theme_draw_menu_item(rtgui_menu_t* menu, rtgui_menu_item_t *item)
 {
 	rtgui_rect_t rect, item_rect;
-	int item_size;
 	rtgui_dc_t* dc;
 	
 	RT_ASSERT(menu != RT_NULL);
@@ -699,82 +694,84 @@ void rtgui_theme_draw_menu_item(rtgui_menu_t* menu, rtgui_menu_item_t *item)
 	if(dc == RT_NULL)return;
 
 	rtgui_widget_get_rect(menu, &rect);
-	item_size = menu->item_size;
 
 	rtgui_rect_inflate(&rect, -RTGUI_WIDGET_BORDER(menu));
 	item_rect = rect;
 
-	if(menu->orient == RTGUI_VERTICAL)
+	if(menu->orient == RTGUI_HORIZONTAL)
 	{
-		int serial_num=0;
-		rtgui_menu_item_t* tmp_item=menu->head;
-		while(tmp_item != item)
-		{/* 计算菜单项的位置 */
-			serial_num++;
-			tmp_item = tmp_item->next;
+		int size = 0;
+		rtgui_menu_item_t *menu_node = menu->head;
+		while(menu_node != item)
+		{/* calculate menu item display position */
+			size += menu_node->item_width;
+			menu_node = menu_node->next;
+		}
+		item_rect.x1 += size;
+		item_rect.x2 = item_rect.x1 + menu_node->item_width;
+	}
+	else 
+	{
+		int size = 0;
+		rtgui_menu_item_t *menu_node = menu->head;
+
+		while(menu_node != item)
+		{/* calculate menu item display position */
+			size += menu_node->item_height;
+			menu_node = menu_node->next;
 		}
 		/* set the text rect */
-		item_rect.y1 += serial_num * (item_size+1);
-		item_rect.y2 = item_rect.y1 + item_size;
-
-		/* draw menu item */
-		if(menu->current_item == item)
-		{/* 当前项 */
-			if(RTGUI_WIDGET_IS_FOCUSED(menu))
-			{
-				RTGUI_DC_BC(dc) = selected_color;
-				RTGUI_DC_FC(dc) = white;
-			}
-			else
-			{
-				RTGUI_DC_BC(dc) = dark_grey;
-				RTGUI_DC_FC(dc) = black;
-			}
-
-			rtgui_dc_fill_rect(dc, &item_rect);
-			if(item->image)
-			{
-				item_rect.x1 += RTGUI_MENU_IMAGE_W+RTGUI_WIDGET_BORDER(menu);
-			}
-			item_rect.x1 += RTGUI_WIDGET_DEFAULT_MARGIN;
-
-			rtgui_dc_draw_text(dc, item->caption, &item_rect);
-
-			if(item->type & RTGUI_MENU_POPUP)
-			{
-				RTGUI_DC_FC(dc) = white;
-				rtgui_dc_draw_byte(dc,rect.x2-8, item_rect.y1+7, 7, menu_popup_byte);
-			}
-			if(item->image)
-			{
-				item_rect.x1 -= RTGUI_MENU_IMAGE_W+RTGUI_WIDGET_BORDER(menu);
-			}
-			item_rect.x1 -= RTGUI_WIDGET_DEFAULT_MARGIN;
-		}
-		else
-		{//非当前项
-			RTGUI_DC_BC(dc) = white;
-			RTGUI_DC_FC(dc) = black;
-			rtgui_dc_fill_rect(dc,&item_rect);
-			if(item->image)
-			{
-				item_rect.x1 += RTGUI_MENU_IMAGE_W+RTGUI_WIDGET_BORDER(menu);
-			}
-			item_rect.x1 += RTGUI_WIDGET_DEFAULT_MARGIN;
-
-			rtgui_dc_draw_text(dc, item->caption, &item_rect);
-			if(item->type & RTGUI_MENU_POPUP)
-				rtgui_dc_draw_byte(dc,rect.x2-8, item_rect.y1+7, 7, menu_popup_byte);
-			if(item->image)
-			{
-				item_rect.x1 -= RTGUI_MENU_IMAGE_W+RTGUI_WIDGET_BORDER(menu);
-			}
-			item_rect.x1 -= RTGUI_WIDGET_DEFAULT_MARGIN;
-		}
+		item_rect.y1 += size;
+		item_rect.y2 = item_rect.y1 + menu_node->item_height;
 	}
-//	else
-//	{
-//	}
+
+	/* draw menu item */
+	if(menu->now_item == item)
+	{/* current item */
+		RTGUI_DC_BC(dc) = selected_color;
+		RTGUI_DC_FC(dc) = white;
+
+		rtgui_dc_fill_rect(dc, &item_rect);
+		if(item->image)
+		{
+			item_rect.x1 += item->image->w + RTGUI_WIDGET_BORDER(menu);
+		}
+		
+		item_rect.x1 += RTGUI_MENU_MARGIN_W;
+		rtgui_dc_draw_text(dc, item->caption, &item_rect);
+		if((item->flag == RTGUI_MENU_POPUP) && (menu->orient==RTGUI_VERTICAL))
+		{
+			RTGUI_DC_FC(dc) = white;
+			rtgui_dc_draw_byte(dc,rect.x2-8, item_rect.y1+7, 7, menu_popup_byte);
+		}
+		if(item->image)
+		{
+			item_rect.x1 -= item->image->w + RTGUI_WIDGET_BORDER(menu);
+		}
+		item_rect.x1 -= RTGUI_MENU_MARGIN_W;
+	}
+	else
+	{/* other item */
+		RTGUI_DC_BC(dc) = default_background;
+		RTGUI_DC_FC(dc) = black;
+		rtgui_dc_fill_rect(dc,&item_rect);
+		if(item->image)
+		{
+			item_rect.x1 += item->image->w + RTGUI_WIDGET_BORDER(menu);
+		}
+		
+		item_rect.x1 += RTGUI_MENU_MARGIN_W;
+		rtgui_dc_draw_text(dc, item->caption, &item_rect);
+		if((item->flag == RTGUI_MENU_POPUP) && (menu->orient==RTGUI_VERTICAL))
+		{
+			rtgui_dc_draw_byte(dc,rect.x2-8, item_rect.y1+7, 7, menu_popup_byte);
+		}
+		if(item->image)
+		{
+			item_rect.x1 -= item->image->w + RTGUI_WIDGET_BORDER(menu);
+		}
+		item_rect.x1 -= RTGUI_MENU_MARGIN_W;
+	}
 
 	rtgui_dc_end_drawing(dc);
 }
@@ -782,7 +779,6 @@ void rtgui_theme_draw_menu_item(rtgui_menu_t* menu, rtgui_menu_item_t *item)
 void rtgui_theme_draw_menu(rtgui_menu_t* menu)
 {
 	rtgui_rect_t rect, item_rect;
-	int item_size, index;
 	rtgui_dc_t* dc;
 	
 	RT_ASSERT(menu != RT_NULL);
@@ -794,89 +790,143 @@ void rtgui_theme_draw_menu(rtgui_menu_t* menu)
 	rtgui_widget_get_rect(menu, &rect);
 
 	rtgui_rect_inflate(&rect,-RTGUI_WIDGET_BORDER(menu));
-	RTGUI_DC_BC(dc) = white;
+	RTGUI_DC_BC(dc) = default_background;
 	rtgui_dc_fill_rect(dc,&rect);
 	rtgui_rect_inflate(&rect, RTGUI_WIDGET_BORDER(menu));
 	rtgui_dc_draw_border(dc, &rect, RTGUI_WIDGET_BORDER_STYLE(menu));
 
-	item_size = menu->item_size;
-
 	rtgui_rect_inflate(&rect, -RTGUI_WIDGET_BORDER(menu));
 	item_rect = rect;
 
-	if(menu->orient == RTGUI_VERTICAL)
-	{//垂直排列
-		//rt_uint16_t offset;
-		rtgui_menu_item_t* menu_item = menu->head;//该组的第一个菜单项
-
-		/* set the first text rect */
-		item_rect.y2 = item_rect.y1 + item_size;
-
+	if(menu->orient == RTGUI_HORIZONTAL)
+	{/* horizontal style */
+		rtgui_menu_item_t* menu_node = menu->head;
+		
 		/* draw each menu item */
-		for(index = 0; index < menu->item_count; index ++)
+		while(menu_node)
 		{
-			if(item_rect.y2 > rect.y2) break;
-
+			/* set the text rect */
+			item_rect.x2 = item_rect.x1 + menu_node->item_width;
 			/* draw text */
-			if(menu_item == menu->current_item)
-			{/* 绘制当前项 */
-				if(RTGUI_WIDGET_IS_FOCUSED(menu))
+			if(menu_node == menu->now_item)
+			{/* draw current item */
+				if(menu->unfold)
 				{
 					RTGUI_DC_BC(dc) = selected_color;
 					RTGUI_DC_FC(dc) = white;
 				}
 				else
 				{
-					RTGUI_DC_BC(dc) = dark_grey;
+					RTGUI_DC_BC(dc) = default_background;
 					RTGUI_DC_FC(dc) = black;
 				}
 
 				rtgui_dc_fill_rect(dc, &item_rect);
-				if(menu_item->image)
+				if(menu_node->image)
 				{
-					item_rect.x1 += RTGUI_MENU_IMAGE_W+RTGUI_WIDGET_BORDER(menu);
+					item_rect.x1 += menu_node->image->w;
 				}
-				item_rect.x1 += RTGUI_WIDGET_DEFAULT_MARGIN;
-
-				rtgui_dc_draw_text(dc, menu_item->caption, &item_rect);
-
-				if(menu_item->type & RTGUI_MENU_POPUP)
+				
+				item_rect.x1 += RTGUI_MENU_MARGIN_W;
+				rtgui_dc_draw_text(dc, menu_node->caption, &item_rect);
+				if((menu_node->flag == RTGUI_MENU_POPUP) && (menu->orient==RTGUI_VERTICAL))
+				{
 					rtgui_dc_draw_byte(dc,rect.x2-8, item_rect.y1+7, 7, menu_popup_byte);
-				if(menu_item->image)
-				{
-					item_rect.x1 -= RTGUI_MENU_IMAGE_W+RTGUI_WIDGET_BORDER(menu);
 				}
-				item_rect.x1 -= RTGUI_WIDGET_DEFAULT_MARGIN;
+				if(menu_node->image)
+				{
+					item_rect.x1 -= menu_node->image->w;
+				}
+				item_rect.x1 -= RTGUI_MENU_MARGIN_W;
 			}
 			else
 			{
-				RTGUI_DC_BC(dc) = white;
+				RTGUI_DC_BC(dc) = default_background;
 				RTGUI_DC_FC(dc) = black;
 				rtgui_dc_fill_rect(dc,&item_rect);
-				if(menu_item->image)
+				if(menu_node->image)
 				{
-					item_rect.x1 += RTGUI_MENU_IMAGE_W+RTGUI_WIDGET_BORDER(menu);
+					item_rect.x1 += menu_node->image->w;
 				}
-				item_rect.x1 += RTGUI_WIDGET_DEFAULT_MARGIN;
-
-				rtgui_dc_draw_text(dc, menu_item->caption, &item_rect);
-				if(menu_item->type & RTGUI_MENU_POPUP)
-					rtgui_dc_draw_byte(dc,rect.x2-8, item_rect.y1+7, 7, menu_popup_byte);
-				if(menu_item->image)
+				
+				item_rect.x1 += RTGUI_MENU_MARGIN_W;
+				rtgui_dc_draw_text(dc, menu_node->caption, &item_rect);
+				if(menu_node->image)
 				{
-					item_rect.x1 -= RTGUI_MENU_IMAGE_W+RTGUI_WIDGET_BORDER(menu);
+					item_rect.x1 -= menu_node->image->w;
 				}
-				item_rect.x1 -= RTGUI_WIDGET_DEFAULT_MARGIN;
+				item_rect.x1 -= RTGUI_MENU_MARGIN_W;
 			}
-			menu_item = menu_item->next;
+			menu_node = menu_node->next;
 
-			item_rect.y1 += item_size+1;
-			item_rect.y2 = item_rect.y1+item_size;
+			item_rect.x1 = item_rect.x2;
 		}
 	}
 	else
-	{//水平排列
-		//Add code at here...
+	{/* vertical style */
+		rtgui_menu_item_t* menu_node = menu->head;
+
+		/* draw each menu item */
+		while(menu_node)
+		{
+			/* set the text rect */
+			item_rect.y2 = item_rect.y1 + menu_node->item_height;
+			/* draw text */
+			if(menu_node == menu->now_item)
+			{/* draw current item */
+				if(menu->unfold)
+				{
+					RTGUI_DC_BC(dc) = selected_color;
+					RTGUI_DC_FC(dc) = white;
+				}
+				else
+				{
+					RTGUI_DC_BC(dc) = default_background;
+					RTGUI_DC_FC(dc) = black;
+				}
+
+				rtgui_dc_fill_rect(dc, &item_rect);
+				if(menu_node->image)
+				{
+					item_rect.x1 += menu_node->image->w;	
+				}
+				
+				item_rect.x1 += RTGUI_MENU_MARGIN_W;
+				rtgui_dc_draw_text(dc, menu_node->caption, &item_rect);
+				if((menu_node->flag == RTGUI_MENU_POPUP) && (menu->orient==RTGUI_VERTICAL))
+				{
+					rtgui_dc_draw_byte(dc,rect.x2-8, item_rect.y1+7, 7, menu_popup_byte);
+				}
+				if(menu_node->image)
+				{
+					item_rect.x1 -= menu_node->image->w;
+				}
+				item_rect.x1 -= RTGUI_MENU_MARGIN_W;
+			}
+			else
+			{
+				RTGUI_DC_BC(dc) = default_background;
+				RTGUI_DC_FC(dc) = black;
+				rtgui_dc_fill_rect(dc,&item_rect);
+				if(menu_node->image)
+				{
+					item_rect.x1 += menu_node->image->w;
+				}
+				
+				item_rect.x1 += RTGUI_MENU_MARGIN_W;
+				rtgui_dc_draw_text(dc, menu_node->caption, &item_rect);
+				if(menu_node->flag == RTGUI_MENU_POPUP)
+					rtgui_dc_draw_byte(dc,rect.x2-8, item_rect.y1+7, 7, menu_popup_byte);
+				if(menu_node->image)
+				{
+					item_rect.x1 -= menu_node->image->w;;
+				}
+				item_rect.x1 -= RTGUI_MENU_MARGIN_W;
+			}
+			menu_node = menu_node->next;
+
+			item_rect.y1 = item_rect.y2;
+		}
 	}
 
 	rtgui_dc_end_drawing(dc);
@@ -970,9 +1020,8 @@ void rtgui_theme_draw_slider(rtgui_slider_t* slider)
 	/* draw focus */
 	if(RTGUI_WIDGET_IS_FOCUSED(slider))
 	{
-		RTGUI_DC_FC(dc) = white;
-		rtgui_dc_draw_focus_rect(dc, &focus_rect);
 		RTGUI_DC_FC(dc) = black;
+		rtgui_dc_draw_focus_rect(dc, &focus_rect);
 	}
 
 	rtgui_dc_end_drawing(dc);
@@ -1169,9 +1218,13 @@ void rtgui_theme_draw_staticline(rtgui_staticline_t* sline)
 	rtgui_dc_end_drawing(dc);
 }
 
-void rtgui_theme_draw_selected(rtgui_dc_t *dc, rtgui_color_t *color, rtgui_rect_t *rect)
+void rtgui_theme_draw_selected(rtgui_dc_t *dc, rtgui_rect_t *rect)
 {
-	rt_uint16_t i;
+	rtgui_color_t bc;
+	rt_uint16_t index;
+	
+	bc = RTGUI_DC_FC(dc);
+	RTGUI_DC_FC(dc) = selected_color;
 
 	rtgui_dc_draw_hline(dc,rect->x1 + 1, rect->x2 - 0, rect->y1 + 1);
 	rtgui_dc_draw_hline(dc,rect->x1 + 1, rect->x2 - 0, rect->y2 - 2);
@@ -1179,8 +1232,10 @@ void rtgui_theme_draw_selected(rtgui_dc_t *dc, rtgui_color_t *color, rtgui_rect_
 	rtgui_dc_draw_vline(dc,rect->x1 + 1, rect->y1 + 2, rect->y2 - 2);
 	rtgui_dc_draw_vline(dc,rect->x2 - 1, rect->y1 + 2, rect->y2 - 2);
 
-	for(i = rect->y1 + 1; i < rect->y2 - 2; i ++)
-		rtgui_dc_draw_hline(dc,rect->x1 + 2, rect->x2 - 1, i);
+	for(index = rect->y1 + 1; index < rect->y2 - 2; index ++)
+		rtgui_dc_draw_hline(dc,rect->x1 + 2, rect->x2 - 1, index);
+
+	RTGUI_DC_FC(dc) = bc;
 }
 
 /* get default background color */

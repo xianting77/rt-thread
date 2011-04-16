@@ -31,6 +31,20 @@ void rtgui_server_handle_update(rtgui_event_update_t* event)
 	gd->screen_update(&(event->rect));
 }
 
+void rtgui_server_handle_current_pos(rtgui_event_current_pos_t* event)
+{
+	struct rt_thread *thread = rtgui_panel_get()->tid;
+
+	/* re-init to server thread */
+	RTGUI_EVENT_CURRENT_POS_INIT(event);
+
+	/* send to panel */
+	if(thread != RT_NULL)
+	{
+		rtgui_thread_send_sync(thread, (rtgui_event_t*)event, sizeof(rtgui_event_current_pos_t));
+	}
+}
+
 void rtgui_server_handle_mouse_btn(rtgui_event_mouse_t* event)
 {
 	rtgui_win_t* win;
@@ -276,6 +290,11 @@ static void rtgui_server_entry(void* parameter)
 	
 				case RTGUI_EVENT_COMMAND:
 					break;
+
+				case RTGUI_EVENT_CURRENT_POS:
+					rtgui_server_handle_current_pos((rtgui_event_current_pos_t*)event);
+					break;
+	
 			}
 		}
 	}

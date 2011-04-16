@@ -10,6 +10,8 @@
  * Change Logs:
  * Date           Author       Notes
  * 2009-10-16     Bernard      first version
+ * 2011-04-04     amsl         let topwin regard as window kits.
+ *                             by the way,they meaning is different.
  */
 #include "panel.h"
 #include "topwin.h"
@@ -31,9 +33,38 @@ void rtgui_panel_redraw(rtgui_rect_t* rect);
 
 void rtgui_win_init(void)
 {
-	//初始化窗口列表
+	/* initizlize window list */
 	rtgui_list_init(&_rtgui_win_show_list);
 	rtgui_list_init(&_rtgui_win_hide_list);
+}
+
+void rtgui_win_insert(rtgui_list_t *list, rtgui_win_t *win)
+{	
+#if (0)
+	rtgui_list_t *node;
+	rtgui_win_t *wid;
+
+	if(list->next == RT_NULL)
+	{/* frist */
+		rtgui_list_insert(list, &(win->list));
+	}
+	else
+	{	
+		rtgui_list_foreach(node, list)
+		{	
+			wid = rtgui_list_entry(node, rtgui_win_t, list);
+			//rt_kprintf("wid->title = %s\n",wid->title);
+			/* insert troops head, only same level */
+			if(win->level >= wid->level)
+			{
+				rtgui_list_insert(node, &(win->list));
+				return;
+			}
+		}
+	}
+#else 
+	rtgui_list_insert(list, &(win->list));	
+#endif
 }
 
 static rt_bool_t rtgui_win_search_in_list(rtgui_win_t* win, rtgui_list_t *list)
@@ -51,70 +82,35 @@ static rt_bool_t rtgui_win_search_in_list(rtgui_win_t* win, rtgui_list_t *list)
 	return RT_FALSE;
 }
 
-//添加一个窗口到隐藏窗口列表(默认新建的窗口处于隐藏状态)
+/* add a window to window list[hide] */
 rt_err_t rtgui_topwin_add(rtgui_win_t* win)
 {
 	if(win != RT_NULL)
 	{
 		/* update clip info */
 		rtgui_widget_update_clip(win);
-		list_insert(&(_rtgui_win_hide_list), &(win->list));
+		rtgui_list_insert(&(_rtgui_win_hide_list), &(win->list));
 		return RT_EOK;
 	}
 	return RT_ERROR;
 }
 
-/* 移除一个窗口 */
+/* remove a window from window list */
 rt_err_t rtgui_topwin_remove(rtgui_win_t* win)
 {
 	RT_ASSERT(win != RT_NULL);
-
-	if(rtgui_win_search_in_list(win,&_rtgui_win_show_list))
-	{	/* in show list */
-		rtgui_list_t *node;
-		rtgui_win_t *wid;
-		rtgui_rect_t rect = RTGUI_WIDGET_EXTENT(win);
-		int front_num=0;//计算Z序在当前窗口之上的窗口数量
-
-		/* remove node from list */
-		rtgui_list_remove(&_rtgui_win_show_list, &(win->list));
-
-		rtgui_update_external_clip_info();
-
-		rtgui_list_foreach(node, &_rtgui_win_show_list)
-		{	
-			wid = rtgui_list_entry(node, rtgui_win_t, list);
-			/* 更新"已显示"窗口中与"刚删除的窗口"重叠的区域 */
-			rtgui_toplevel_update_clip(wid, &rect, front_num);
-			rtgui_win_ondraw(wid);
-			front_num++;
-		}
-
-		/* 激活下一个窗口 */
-		if(_rtgui_win_show_list.next != RT_NULL)
-		{
-			rtgui_win_t* wnd = rtgui_list_entry(_rtgui_win_show_list.next,rtgui_win_t, list);
-			
-			rtgui_topwin_raise(wnd);
-			rtgui_server_focus_win = wnd;
-		}
-		else
-		{
-			/* 没有可以显示的窗口 */
-			rtgui_server_focus_win = RT_NULL;
-		}
-		
-		rtgui_panel_redraw(&rect);
-
-		return RT_EOK;
+	/* frist hide when it in show list */
+	if (rtgui_win_search_in_list(win,&_rtgui_win_show_list))
+	{
+		rtgui_topwin_hide(win);
 	}
-	else if(rtgui_win_search_in_list(win, &_rtgui_win_hide_list))
-	{//在"隐藏"列表中
+
+	if (rtgui_win_search_in_list(win, &_rtgui_win_hide_list))
+	{/* in hide window list */
 		/* remove node from list */
 		rtgui_list_remove(&_rtgui_win_hide_list, &(win->list));
 		return RT_EOK;
 	}
-	
 	return RT_ERROR;
 }
 
@@ -145,7 +141,7 @@ rt_err_t rtgui_topwin_deactivate(rtgui_win_t* win)
 {
 	win->status &= ~RTGUI_WIN_STATUS_ACTIVATE;
 
-	/* 该窗口在之前应该是活动的,所有可以直接绘图 */
+	/* it is acitvate before draw window title */
 	rtgui_theme_draw_win_title(win);
 
 	if(rtgui_server_focus_win == win)
@@ -156,14 +152,14 @@ rt_err_t rtgui_topwin_deactivate(rtgui_win_t* win)
 	return RT_EOK;
 }
 
-/* raise window to front 将指定窗口提升为当前窗口 */
+/* raise window to front */
 rt_err_t rtgui_topwin_raise(rtgui_win_t* win)
 {
 	RT_ASSERT(win != RT_NULL);
 
 	/* find the twin node */	
 	if(rtgui_win_search_in_list(win, &_rtgui_win_show_list))
-	{//窗口在显示列表中
+	{/* in show window list */
 		rtgui_list_t *node;
 		rtgui_win_t *wid;
 		rtgui_rect_t rect = RTGUI_WIDGET_EXTENT(win);
@@ -171,38 +167,37 @@ rt_err_t rtgui_topwin_raise(rtgui_win_t* win)
 
 		/* the window is already placed in front */
 		if(&(win->list) == _rtgui_win_show_list.next)
-		{/* 该窗口已经在最前面 */
+		{/* show already */
 			rtgui_server_focus_win = RT_NULL;
 			rtgui_topwin_activate(win);
 		    return RT_EOK;
 		}
 
 		if(rtgui_server_focus_win != RT_NULL && rtgui_server_focus_win != win)
-		{/* 旧窗口置为非活动状态 */
+		{/* let the shall unfocused window to deactivate */
 			rtgui_topwin_deactivate(rtgui_server_focus_win);	
 		}
 
 		rtgui_list_foreach(node, &_rtgui_win_show_list)
-		{/* 更新各窗口的剪切域 */
+		{/* update window list clip */
 			wid = rtgui_list_entry(node, rtgui_win_t, list); 
-			//除了"输入法"窗口,当前窗口不会被任何窗口覆盖
 			if(wid == win) 
 			{
 				front_num++;
 				continue;
 			}
-			//其它窗口则需要剪切掉当前窗口
+			/* update clip from other window to current window */
 			rtgui_toplevel_update_clip(wid, &rect, front_num);
-			rtgui_win_ondraw(wid); //这个地方采用区域绘图效果会更好
+			rtgui_win_ondraw(wid); 
 			front_num++;			
 		}
 		
 		/* remove node from list */
 		rtgui_list_remove(&_rtgui_win_show_list, &(win->list));
 		/* add to front */
-		list_insert(&_rtgui_win_show_list, &(win->list));
-		
-		//新窗口置为活动状态
+		rtgui_win_insert(&_rtgui_win_show_list, win);
+
+		/* set current window on activate */
 		rtgui_topwin_activate(win);
 
 		return RT_EOK;
@@ -220,12 +215,12 @@ rt_err_t rtgui_topwin_show(rtgui_win_t* win)
 	if(win != RT_NULL)
 	{	
 		if(rtgui_win_search_in_list(win, &_rtgui_win_hide_list))
-		{//在隐藏列表中
+		{
 			/* remove node from hidden list */
 			rtgui_list_remove(&_rtgui_win_hide_list, &(win->list));
 	
 			/* add node to show list */
-			list_insert(&_rtgui_win_show_list, &(win->list));
+			rtgui_win_insert(&_rtgui_win_show_list, win);
 			rtgui_update_external_clip_info();
 			rtgui_panel_update_clip(panel);
 			
@@ -235,7 +230,7 @@ rt_err_t rtgui_topwin_show(rtgui_win_t* win)
 			rtgui_topwin_activate(win);
 		}
 		else if(rtgui_win_search_in_list(win, &_rtgui_win_show_list))
-		{//在显示列表中
+		{
 			/* just raise it */
 			rtgui_topwin_raise(win);
 		}
@@ -254,33 +249,43 @@ rt_err_t rtgui_topwin_hide(rtgui_win_t* win)
 	/* found it */
 	if(win != RT_NULL)
 	{
+		rtgui_list_t *node;
+		rtgui_win_t *wid;
+		rtgui_rect_t rect = RTGUI_WIDGET_EXTENT(win);
+		int front_num=0;
+
 		/* remove node from show list */
 		rtgui_list_remove(&_rtgui_win_show_list, &(win->list));
+		/* insert node to hide list */
+		rtgui_list_insert(&_rtgui_win_hide_list, &(win->list));
+		RTGUI_WIDGET_HIDE(win);
+		/* update external clip informations */
 		rtgui_update_external_clip_info();
-		rtgui_panel_update_clip(panel);
-		/* add node to hidden list */
-		list_insert(&_rtgui_win_hide_list, &(win->list));
 
-		/* redraw the old rect */
-		rtgui_panel_redraw(&(RTGUI_WIDGET_EXTENT(win)));
+		rtgui_list_foreach(node, &_rtgui_win_show_list)
+		{	
+			wid = rtgui_list_entry(node, rtgui_win_t, list);
+			/* update overlap area */
+			rtgui_toplevel_update_clip(wid, &rect, front_num);
+			rtgui_win_ondraw(wid);
+			front_num++;
+		}
 
-		if(rtgui_server_focus_win == win)
+		/* activate next window */
+		if(_rtgui_win_show_list.next != RT_NULL)
 		{
-			/* activate the next window */
-			if(_rtgui_win_show_list.next != RT_NULL)
-			{
-				/* get the win */
-				win = rtgui_list_entry(_rtgui_win_show_list.next,rtgui_win_t, list);
-				rtgui_server_focus_win = RT_NULL;
-				rtgui_topwin_activate(win);
-			}
-			else
-			{
-				/* there is no shown window right now */
-				rtgui_server_focus_win = RT_NULL;
-			}
+			rtgui_win_t* wnd = rtgui_list_entry(_rtgui_win_show_list.next,rtgui_win_t, list);
+			
+			rtgui_topwin_raise(wnd);
+			rtgui_server_focus_win = wnd;
+		}
+		else
+		{
+			/* no focus window */
+			rtgui_server_focus_win = RT_NULL;
 		}
 		
+		rtgui_panel_redraw(&rect);
 		return RT_EOK;
 	}
 	
@@ -307,11 +312,11 @@ rt_err_t rtgui_topwin_move(rtgui_win_t* win, int x, int y)
 		/* move window rect */
 		rtgui_widget_move_to_logic(RTGUI_WIDGET(win), dx, dy);
 
-		/* 窗口移动了,需要更新external信息 */
+		/* it's moved, update external info */
 		rtgui_update_external_clip_info();
 
 		rtgui_list_foreach(node, &_rtgui_win_show_list)
-		{/* 更新各窗口的剪切域 */
+		{
 			wid = rtgui_list_entry(node, rtgui_win_t, list);
 			if(wid == win)
 			{
@@ -323,7 +328,7 @@ rt_err_t rtgui_topwin_move(rtgui_win_t* win, int x, int y)
 			front_num++;
 		}
 
-		/* 当前窗口是活动的,直接更新它的clip */
+		/* direct update itself on account of active. */
 		rtgui_widget_update_clip(win);
 		rtgui_widget_update(win);
 
@@ -378,7 +383,27 @@ rtgui_win_t* rtgui_topwin_get_wnd(int x, int y)
 	return RT_NULL;
 }
 
-//front_num: 需要剪切掉的topwin层数,只剪切Z序在自己之上的
+int rtgui_topwin_get_layer(rtgui_win_t *win)
+{
+	rtgui_list_t *node;
+	rtgui_win_t *wid;
+	int level=0;
+
+	rtgui_list_foreach(node, &(_rtgui_win_show_list))
+	{	
+		wid = rtgui_list_entry(node, rtgui_win_t, list);
+		/* insert troops head, only same level */
+		if(win->level >= wid->level)
+		{
+			level ++;
+			break;
+		}
+	}
+
+	return level;
+}
+
+/* front_num: Z-order number above the current window */
 void rtgui_toplevel_update_clip(PVOID wdt, rtgui_rect_t *rect, int front_num)
 {
 	rtgui_widget_t *widget = (rtgui_widget_t*)wdt;
@@ -389,15 +414,15 @@ void rtgui_toplevel_update_clip(PVOID wdt, rtgui_rect_t *rect, int front_num)
 	new_rect = widget->extent;
 
 	if(rtgui_rect_is_intersect(rect, &new_rect) == RT_EOK)
-	{//两个区域相交		
-		rtgui_rect_intersect(rect, &new_rect);//计算重叠的区域
-		rtgui_region_reset(&(widget->clip), &new_rect);//将重叠区域作为剪切域 
-		
+	{/* two box rect is intersect */		
+		rtgui_rect_intersect(rect, &new_rect);/* calculate overlapped area */
+		rtgui_region_reset(&(widget->clip), &new_rect);/* to install overlap area in the clip */ 
+
 		if(front_num > 0)	
 		{
 			rt_int32_t i;
 			rtgui_rect_t *ext_rect;
-			
+
 			ext_rect = external_clip_rect;
 			for(i=0;i<front_num;i++)
 			{
@@ -411,19 +436,18 @@ void rtgui_toplevel_update_clip(PVOID wdt, rtgui_rect_t *rect, int front_num)
 		rtgui_region_reset(&(widget->clip), &rtgui_empty_rect);
 	}
 
-	{/* 将控件clip限定在屏幕之内 */
+	{/* widget clip limited to screen area */
 		rtgui_rect_t screen_rect;
 		rtgui_graphic_driver_get_rect(rtgui_graphic_driver_get_default(),&screen_rect);
 		rtgui_region_intersect_rect(&(widget->clip), &(widget->clip), &screen_rect);
 	}
 
 	if(RTGUI_IS_CONTAINER(widget))
-	{/* 是容器控件,则更新rect范围内的子控件 */
+	{/* is container ,update children */
 		rtgui_list_foreach(node, &(RTGUI_CONTAINER(widget)->children))
 		{	
 			child = rtgui_list_entry(node, rtgui_widget_t, sibling);
 			if(RTGUI_WIDGET_IS_HIDE(child))continue;
-			/* 复位子控件Clip */
 			rtgui_region_subtract_rect(&(widget->clip), &(widget->clip),&(child->extent));
 			rtgui_toplevel_update_clip(child, rect, front_num);
 		}
@@ -448,9 +472,9 @@ void rtgui_topwin_title_onmouse(rtgui_win_t* win, rtgui_event_mouse_t* event)
 	if(event->button & RTGUI_MOUSE_BUTTON_LEFT)
 	{
 		if(event->button & RTGUI_MOUSE_BUTTON_DOWN)
-		{//鼠标按键按下
+		{
 			if(win->style & RTGUI_WIN_CLOSEBOX)
-			{//关闭
+			{
 				rtgui_win_get_closebox_rect(win, &rect);
 				rtgui_widget_rect_to_device(win, &rect);
 				if(rtgui_rect_contains_point(&rect, event->x, event->y) == RT_EOK)
@@ -461,7 +485,7 @@ void rtgui_topwin_title_onmouse(rtgui_win_t* win, rtgui_event_mouse_t* event)
 				}
 			}
 			if(win->style & RTGUI_WIN_MAXBOX)
-			{//最大化
+			{/* use maximum box */
 				rtgui_win_get_maxbox_rect(win, &rect);
 				rtgui_widget_rect_to_device(win, &rect);
 				if(rtgui_rect_contains_point(&rect, event->x, event->y) == RT_EOK)
@@ -472,7 +496,7 @@ void rtgui_topwin_title_onmouse(rtgui_win_t* win, rtgui_event_mouse_t* event)
 				}
 			}
 			if(win->style & RTGUI_WIN_MINBOX)
-			{//最小化
+			{/* use minimum box */
 				rtgui_win_get_minbox_rect(win, &rect);
 				rtgui_widget_rect_to_device(win, &rect);
 				if(rtgui_rect_contains_point(&rect, event->x, event->y) == RT_EOK)
@@ -489,9 +513,9 @@ void rtgui_topwin_title_onmouse(rtgui_win_t* win, rtgui_event_mouse_t* event)
 #endif
 		}
 		else if(event->button & RTGUI_MOUSE_BUTTON_UP)
-		{//数遍按键弹起
+		{
 			if(win->style & RTGUI_WIN_CLOSEBOX)
-			{//关闭
+			{
 				rtgui_win_get_closebox_rect(win, &rect);
 				rtgui_widget_rect_to_device(win, &rect);
 				if(rtgui_rect_contains_point(&rect, event->x, event->y) == RT_EOK)
@@ -501,7 +525,7 @@ void rtgui_topwin_title_onmouse(rtgui_win_t* win, rtgui_event_mouse_t* event)
 					win->style &= ~RTGUI_WIN_CLOSEBOX_PRESSED;
 					rtgui_theme_draw_win_closebox(win);
 
-					/* 发送"关闭窗口"事件 */
+					/* send "close window" event to server */
 					RTGUI_EVENT_WIN_CLOSE_INIT(&event);
 					event.wid = win;	 
 					
@@ -511,7 +535,7 @@ void rtgui_topwin_title_onmouse(rtgui_win_t* win, rtgui_event_mouse_t* event)
 				}
 			}
 			if(win->style & RTGUI_WIN_MAXBOX)
-			{//最大化
+			{
 				rtgui_win_get_maxbox_rect(win, &rect);
 				rtgui_widget_rect_to_device(win, &rect);
 				if(rtgui_rect_contains_point(&rect, event->x, event->y) == RT_EOK)
@@ -529,7 +553,7 @@ void rtgui_topwin_title_onmouse(rtgui_win_t* win, rtgui_event_mouse_t* event)
 				}
 			}
 			if(win->style & RTGUI_WIN_MINBOX)
-			{//最小化
+			{
 				rtgui_win_get_minbox_rect(win, &rect);
 				rtgui_widget_rect_to_device(win, &rect);
 				if(rtgui_rect_contains_point(&rect, event->x, event->y) == RT_EOK)
@@ -558,7 +582,6 @@ void rtgui_panel_update_clip(PVOID wdt)
 	widget = (rtgui_widget_t*)wdt;
 
 	rtgui_region_reset(&(widget->clip), &(widget->extent));
-	//裁剪panel Clip
 	
 	if(external_clip_size > 0)	
 	{
@@ -573,20 +596,18 @@ void rtgui_panel_update_clip(PVOID wdt)
 	}
 
 	if(RTGUI_IS_CONTAINER(widget))
-	{//首先复位panel下的子控件Clip
+	{/* reset child clip under the panel */
 		rtgui_list_foreach(node, &(RTGUI_CONTAINER(widget)->children))
 		{	
 			child = rtgui_list_entry(node, rtgui_widget_t, sibling);
 			if(RTGUI_WIDGET_IS_HIDE(child))continue;
-			//if(RTGUI_IS_WIN(child))continue; //窗口不在这里处理
-			//复位子控件Clip
 			rtgui_region_subtract_rect(&(widget->clip), &(widget->clip),&(child->extent));
 			rtgui_panel_update_clip(child);
 		}
 	}		
 }
 
-//更新Panel Clip时使用
+/* update external clip info */
 void rtgui_update_external_clip_info(void)
 {
 	rtgui_rect_t *rect;
@@ -598,21 +619,21 @@ void rtgui_update_external_clip_info(void)
 	RT_ASSERT(panel != RT_NULL);
 
 	if(external_clip_size > 0)
-	{//清除原有数据
+	{/* clear old data */
 		rt_free(external_clip_rect);
 		external_clip_rect = RT_NULL;
 		external_clip_size = 0;
 	}
 
 	rtgui_list_foreach(node, &_rtgui_win_show_list)
-	{//计算窗口个数
+	{/* window count */
 		count ++;
 	}
 	
 	external_clip_rect = (rtgui_rect_t*)rt_malloc(sizeof(rtgui_rect_t)*count);
 	external_clip_size = count;
 	
-	//rt_kprintf("external_clip_size=%d\n",external_clip_size);
+	/* rt_kprintf("external_clip_size=%d\n",external_clip_size); */
 
 	rect = external_clip_rect;
 
@@ -626,32 +647,54 @@ void rtgui_update_external_clip_info(void)
 
 #ifdef RT_USING_FINSH
 #include <finsh.h>
-//列印窗口列表
+/* print window list info */
 rt_bool_t list_win(void)
 {
 	rtgui_list_t *node;
 	rtgui_win_t* win;
 
-	rt_kprintf("window'name      thread'name      modal            window'id\n");
-	rt_kprintf("---------------- ---------------- ---------------- ----------\n");
-	/* search in list */
+	rt_kprintf("window'name      thread'name  modal    window'id  state status   level\n");
+	rt_kprintf("---------------- ------------ -------- ---------- ----- -------- ------\n");
+	/* search in show list */
 	rtgui_list_foreach(node, &_rtgui_win_show_list)
 	{
 		win = rtgui_list_entry(node, rtgui_win_t, list);
 
 		if(win != RT_NULL)
 		{
-			rt_kprintf("%-16s %-16s %-16s 0x%08X\n",
+			rt_kprintf("%-16s %-12s %-8s 0x%08x %-5s %08x %-5d\n",
 				win->title,win->tid->name,
-				((RTGUI_WIN_IS_MODAL_MODE(win))?"MODAL_OK":"MODAL_CANCEL"),
-				win);
+				((RTGUI_WIN_IS_MODAL_MODE(win))?"OK":"CANCEL"),
+				win, 
+				"SHOW",
+				win->status,
+				win->level);
+		}
+	}
+	/* search in hide list */
+	rtgui_list_foreach(node, &_rtgui_win_hide_list)
+	{
+		win = rtgui_list_entry(node, rtgui_win_t, list);
+
+		if(win != RT_NULL)
+		{
+			rt_kprintf("%-16s %-12s %-8s 0x%08x %-5s %08x %-5d\n",
+				win->title,win->tid->name,
+				((RTGUI_WIN_IS_MODAL_MODE(win))?"OK":"CANCEL"),
+				win, 
+				"HIDE",
+				win->status,
+				win->level);
 		}
 	}
 	if(rtgui_server_focus_win != RT_NULL)
 	{
 		win = rtgui_server_focus_win;
-		rt_kprintf("activate win=%-s,ID=0x%08X, st=%08X\n",
-				win->title,win,win->status);
+		rt_kprintf("focus win: %-s,ID=0x%08x\n",win->title,win);
+	}
+	else
+	{
+		rt_kprintf("focus win=NULL\n");	
 	}
 
 	return RT_TRUE;

@@ -68,6 +68,7 @@ static struct rtgui_image_engine* rtgui_image_get_engine(const char* type)
 	return RT_NULL;
 }
 
+
 #if defined(RTGUI_USING_DFS_FILERW) || defined(RTGUI_USING_STDIO_FILERW)
 rtgui_image_t* rtgui_image_create_from_file(const char* type, const char* filename, rt_bool_t load)
 {
@@ -115,6 +116,7 @@ rtgui_image_t* rtgui_image_create_from_file(const char* type, const char* filena
 
 	return image;
 }
+
 #endif
 
 rtgui_image_t* rtgui_image_create_from_mem(const char* type, const rt_uint8_t* data, rt_size_t length, rt_bool_t load)
@@ -123,9 +125,11 @@ rtgui_image_t* rtgui_image_create_from_mem(const char* type, const rt_uint8_t* d
 	struct rtgui_image_engine* engine;
 	rtgui_image_t* image = RT_NULL;
 
+
 	/* create filerw context */
 	file = rtgui_filerw_create_mem(data, length);
 	if(file == RT_NULL) return RT_NULL;
+
 
 	/* È¡µÃÍ¼ÏñÒıÇæget image engine */
 	engine = rtgui_image_get_engine(type);
@@ -182,6 +186,7 @@ void rtgui_image_register_engine(struct rtgui_image_engine* engine)
 
 void rtgui_image_blit(rtgui_image_t *image, rtgui_dc_t *dc, rtgui_rect_t *rect)
 {
+
 	RT_ASSERT(rect	!= RT_NULL);
 
 	if(image != RT_NULL && image->engine != RT_NULL)
@@ -191,16 +196,23 @@ void rtgui_image_blit(rtgui_image_t *image, rtgui_dc_t *dc, rtgui_rect_t *rect)
 	}
 }
 
+
 void rtgui_image_paste(rtgui_image_t *image, rtgui_dc_t *dc, rtgui_rect_t *rect, rtgui_color_t shield_color)
+
 {
+
 	RT_ASSERT(rect != RT_NULL);
+
 	
+
 	if(image != RT_NULL && image->engine != RT_NULL)
 	{
 		/* use image engine to blit */
 		image->engine->image_paste(image, dc, rect, shield_color);
 	}	
+
 }
+
 
 struct rtgui_image_palette* rtgui_image_palette_create(rt_uint32_t ncolors)
 {
@@ -214,4 +226,3 @@ struct rtgui_image_palette* rtgui_image_palette_create(rt_uint32_t ncolors)
 
 	return palette;
 }
-

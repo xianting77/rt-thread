@@ -99,11 +99,11 @@ rt_bool_t rtgui_view_event_handler(PVOID wdt, rtgui_event_t* event)
 				if(dc == RT_NULL)return RT_FALSE;
 				
 				rtgui_widget_get_rect(view, &rect);
+				rtgui_rect_inflate(&rect, -RTGUI_WIDGET_BORDER(view));
 				/* fill view with background */
 				rtgui_dc_fill_rect(dc, &rect);
-				
-				if(RTGUI_WIDGET_BORDER(view)>0)
-					rtgui_dc_draw_border(dc,&rect,RTGUI_WIDGET_BORDER_STYLE(view));
+				rtgui_rect_inflate(&rect, RTGUI_WIDGET_BORDER(view));
+				rtgui_dc_draw_border(dc, &rect, RTGUI_WIDGET_BORDER_STYLE(view));
 
 				rtgui_dc_end_drawing(dc);
 
@@ -112,7 +112,7 @@ rt_bool_t rtgui_view_event_handler(PVOID wdt, rtgui_event_t* event)
 			}
 			break;
 	
-		default:
+		default: 
 			return rtgui_container_event_handler(widget, event);
 	}
 
@@ -124,10 +124,8 @@ rt_bool_t rtgui_view_show(rtgui_view_t* view)
 	/* parameter check */
 	if(view == RT_NULL) return RT_FALSE;
 
-	//该句放在后面
 	rtgui_widget_show(view);
 
-	/* no modal mode, always return modal_ok */
 	return RT_TRUE;
 }
 

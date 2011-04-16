@@ -273,7 +273,6 @@ static void rtgui_dc_client_draw_hline(struct rtgui_dc* self, int x1, int x2, in
 		rtgui_rect_t* prect;
 
 		prect = &(owner->clip.extents);
-
 		/* calculate vline intersect */
 		if (prect->y1 > y  || prect->y2 <= y ) return;
 		if (prect->x2 <= x1 || prect->x1 > x2) return;
