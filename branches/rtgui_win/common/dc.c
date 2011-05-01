@@ -531,6 +531,9 @@ void rtgui_dc_fill_polygon(struct rtgui_dc* dc, const int* vx, const int* vy, in
 			rtgui_dc_draw_hline(dc, xa, xb, y);
 		}
 	}
+
+	/* release memory */
+	rtgui_free(poly_ints);
 }
 
 void rtgui_dc_draw_circle(struct rtgui_dc* dc, int x, int y, int r)
