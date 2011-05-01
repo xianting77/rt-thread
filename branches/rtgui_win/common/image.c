@@ -226,3 +226,5 @@ struct rtgui_image_palette* rtgui_image_palette_create(rt_uint32_t ncolors)
 
 	return palette;
 }
+
+

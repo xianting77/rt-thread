@@ -133,7 +133,7 @@ static rt_bool_t rtgui_dc_client_fini(struct rtgui_dc* dc)
 //
 //	/* get owner */
 //	owner = RTGUI_CONTAINER_OF(dc, struct rtgui_widget, dc_type);
-
+//
 //	if(RTGUI_WIDGET_IS_DC_VISIBLE(owner))
 //	{
 //		/* send to server to end drawing */
@@ -273,6 +273,7 @@ static void rtgui_dc_client_draw_hline(struct rtgui_dc* self, int x1, int x2, in
 		rtgui_rect_t* prect;
 
 		prect = &(owner->clip.extents);
+		
 		/* calculate vline intersect */
 		if (prect->y1 > y  || prect->y2 <= y ) return;
 		if (prect->x2 <= x1 || prect->x1 > x2) return;

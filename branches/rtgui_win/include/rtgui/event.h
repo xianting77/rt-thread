@@ -37,6 +37,8 @@ typedef struct rtgui_event_scrollbar		rtgui_event_scrollbar_t;
 
 typedef struct rtgui_event_focused			rtgui_event_focused_t;
 typedef struct rtgui_event_resize			rtgui_event_resize_t;
+/* custom event */
+typedef struct rtgui_event_current_pos		rtgui_event_current_pos_t;
 
 enum _rtgui_event_type
 {
@@ -69,6 +71,8 @@ enum _rtgui_event_type
 	RTGUI_EVENT_FOCUSED,            /* widget focused       */
 	RTGUI_EVENT_SCROLLED,           /* scroll bar scrolled  */
 	RTGUI_EVENT_RESIZE,             /* widget resize 		*/
+	/* custom event */
+	RTGUI_EVENT_CURRENT_POS,
 }; 
 typedef enum _rtgui_event_type rtgui_event_type;
 
@@ -174,8 +178,8 @@ struct rtgui_event_monitor
 struct rtgui_event_paint
 {
 	rtgui_event_t parent;
-	rtgui_win_t* wid;		/* destination window */
-	rt_bool_t bfull;//更新全部,还是更新子控件
+	/* destination window */
+	rtgui_win_t* wid;
 };
 
 struct rtgui_event_timer
@@ -240,7 +244,7 @@ struct rtgui_event_current_pos
 	rtgui_event_t parent;
 };
 
-//液晶屏背光
+/*lcd backlight */
 struct rtgui_event_backlight
 {
 	rtgui_event_t parent;
@@ -256,6 +260,7 @@ struct rtgui_event_backlight
 #define RTGUI_EVENT_MOUSE_MOTION_INIT(e)	RTGUI_EVENT_INIT(&((e)->parent), RTGUI_EVENT_MOUSE_MOTION)
 #define RTGUI_EVENT_MOUSE_BUTTON_INIT(e)	RTGUI_EVENT_INIT(&((e)->parent), RTGUI_EVENT_MOUSE_BUTTON)
 #define RTGUI_EVENT_KBD_INIT(e)				RTGUI_EVENT_INIT(&((e)->parent), RTGUI_EVENT_KBD)
+#define RTGUI_EVENT_CURRENT_POS_INIT(e)		RTGUI_EVENT_INIT(&((e)->parent), RTGUI_EVENT_CURRENT_POS)
 
 struct rtgui_event_command
 {

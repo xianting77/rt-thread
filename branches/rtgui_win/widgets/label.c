@@ -131,5 +131,5 @@ void rtgui_label_set_text(rtgui_label_t* label, const char* text)
 		label->text = RT_NULL;
 
 	/* update widget */
-	rtgui_theme_draw_label(label);//该句似乎是多余的,会在左上角(0,0)绘制一个字符串
+	rtgui_theme_draw_label(label);
 }

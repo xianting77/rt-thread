@@ -17,27 +17,24 @@
 #include <rtgui/rtgui_theme.h> 
 #include <rtgui/widgets/menu.h>
 
-rt_bool_t rtgui_menu_event_handler(PVOID wdt, rtgui_event_t* event);
-static rt_bool_t rtgui_menu_onfocus(PVOID wdt, rtgui_event_t* event);
-static rt_bool_t rtgui_menu_onunfocus(PVOID wdt, rtgui_event_t* event);
+/*  */
+static rt_bool_t rtgui_menu_active=0;
+
+static rt_bool_t rtgui_menu_entrust_win_deactivate(PVOID wdt, rtgui_event_t* event);
+static rt_bool_t rtgui_menu_event_handler(PVOID wdt, rtgui_event_t* event);
 static void rtgui_menu_on_down(rtgui_menu_t* menu);
 static void rtgui_menu_on_up(rtgui_menu_t* menu);
-//static void rtgui_menu_to_parent(rtgui_menu_t* menu );
-static void rtgui_menu_to_submenu(rtgui_menu_t* menu);
-static void rtgui_menu_on_exit(rtgui_menu_t* menu);
 
 static void _rtgui_menu_constructor(rtgui_menu_t *menu)
 {
 	/* init menu */
 	rtgui_widget_set_event_handler(menu, rtgui_menu_event_handler);
-	rtgui_widget_set_onfocus(menu, rtgui_menu_onfocus);
-	rtgui_widget_set_onunfocus(menu, rtgui_menu_onunfocus);
 	menu->now_item = RT_NULL;
 	menu->old_item = RT_NULL;
 	menu->name = RT_NULL;
 	RTGUI_WIDGET_FLAG(menu) |= RTGUI_WIDGET_FLAG_FOCUSABLE;
 	menu->type = RTGUI_MENU_NORMAL;
-	menu->unfold = RT_FALSE;
+	menu->unfold = 0;
 
 	menu->head = RT_NULL;
 	menu->tail = RT_NULL;
@@ -107,13 +104,15 @@ rtgui_menu_t* rtgui_menu_create(PVOID parent, const char* name, int left, int to
 			menu->orient = RTGUI_VERTICAL;
 			/* create entrust window */
 			menu->type = RTGUI_MENU_POPUP;
-			menu->entrust_win = rtgui_win_create(RT_NULL, "popup_menu", &rect, RTGUI_WIN_NOBORDER);
+			menu->entrust_win = rtgui_win_create(RT_NULL, name, &rect, RTGUI_WIN_NOBORDER);
 			if(menu->entrust_win == RT_NULL) 
 			{
 				rt_kprintf("create entrust win failed!\n");
 				rtgui_menu_destroy(menu);
 				return RT_NULL;
 			}
+			RTGUI_WIDGET(menu->entrust_win)->user_data = (rt_uint32_t)menu;
+			rtgui_win_set_ondeactivate(menu->entrust_win, rtgui_menu_entrust_win_deactivate);
 			/* let entrust win takeover popup menu */
 			rtgui_container_add_child(menu->entrust_win, menu);
 		}
@@ -131,6 +130,55 @@ rtgui_menu_t* rtgui_menu_create(PVOID parent, const char* name, int left, int to
 void rtgui_menu_destroy(rtgui_menu_t* menu)
 {
 	rtgui_widget_destroy(menu);
+}
+
+rtgui_menu_t* rtgui_menu_get_root(rtgui_menu_t *menu)
+{
+	rtgui_menu_t *menu_root = menu;
+
+	while(menu_root->farther != RT_NULL)
+	{
+		menu_root = menu_root->farther;
+	}
+
+	return menu_root;
+}
+
+rtgui_menu_t* rtgui_menu_get_last(rtgui_menu_t *menu)
+{
+	rtgui_menu_t *tmpmenu = menu;
+	do{	
+		if(tmpmenu->now_item->flag == RTGUI_MENU_POPUP &&
+			tmpmenu->now_item->submenu != RT_NULL &&
+			!RTGUI_WIDGET_IS_HIDE(tmpmenu->now_item->submenu))
+		{	
+			tmpmenu = tmpmenu->now_item->submenu;
+		}
+		else
+			break;
+	
+	}while(tmpmenu != RT_NULL);
+
+	return tmpmenu;
+}
+
+rtgui_menu_t* rtgui_menu_hide_popup(rtgui_menu_t *menu)
+{
+	while(menu->farther != RT_NULL)
+	{
+		if(menu->type == RTGUI_MENU_POPUP &&menu->entrust_win != RT_NULL 
+			&& !RTGUI_WIDGET_IS_HIDE(menu->entrust_win))
+		{
+			if(menu->farther != RT_NULL)
+			{
+				menu->farther->unfold = 0;
+				rtgui_topwin_hide(menu->entrust_win);
+				rtgui_widget_focus(menu->farther);
+			}
+		}
+		menu = menu->farther;
+	}
+	return menu;
 }
 
 /* 
@@ -201,13 +249,14 @@ void rtgui_menu_calc_popup_area(rtgui_menu_t *menu)
 			}
 		}
 		/* entrust window is exist, show it. */
-		if(menu->unfold)
+		if(menu->unfold && submenu->entrust_win != RT_NULL)
 		{
-			if(submenu->entrust_win != RT_NULL)
+			if(RTGUI_WIDGET_IS_HIDE(submenu->entrust_win))
 			{
-				menu->unfold = RT_TRUE;
 				rtgui_win_show(submenu->entrust_win, RT_FALSE);
-				RTGUI_CONTAINER(submenu->entrust_win)->focused = RTGUI_WIDGET(submenu);	
+				rtgui_widget_focus(submenu);
+				submenu->now_item = submenu->head;
+				rtgui_theme_draw_menu_item(submenu, submenu->now_item);
 			}
 		}
 	}
@@ -217,19 +266,7 @@ void rtgui_menu_on_item(rtgui_menu_t* menu)
 {
 	if(menu->now_item->flag == RTGUI_MENU_NORMAL)
 	{/* normal menu item */
-		while(menu->farther != RT_NULL)
-		{
-			if(menu->entrust_win != RT_NULL && !RTGUI_WIDGET_IS_HIDE(menu->entrust_win))
-			{
-				if(menu->farther != RT_NULL)
-				{
-					menu->farther->unfold = RT_FALSE;
-					rtgui_win_hide(menu->entrust_win);
-					rtgui_widget_focus(menu->farther);
-				}
-			}
-			menu = menu->farther;
-		}
+		rtgui_menu_hide_popup(menu);
 	}  
 
 	if (menu->now_item->func_enter)
@@ -241,27 +278,39 @@ void rtgui_menu_on_item(rtgui_menu_t* menu)
 void rtgui_menu_update_selected(rtgui_menu_t* menu)
 {
 	if(menu->old_item == menu->now_item && menu->now_item->flag == RTGUI_MENU_POPUP)
-	{	
+	{
 		if(menu->unfold) 
-			menu->unfold = RT_FALSE;
+			menu->unfold = 0;
 		else
-			menu->unfold = RT_TRUE;
+			menu->unfold = 1;
 	}
 
 	/* location is changed, and old menu item sense popup menu, hide it. */
 	if(menu->old_item->flag == RTGUI_MENU_POPUP)
 	{	
-		if(menu->old_item->submenu != RT_NULL)
-		{
-			rtgui_menu_t *submenu = menu->old_item->submenu;
-			
-			if(submenu->entrust_win != RT_NULL && !RTGUI_WIDGET_IS_HIDE(submenu->entrust_win))
-			{
-				submenu->unfold = RT_FALSE;
-				rtgui_win_hide(submenu->entrust_win);
-				if(menu->old_item == menu->now_item) return;
+		rtgui_menu_t *submenu = menu->old_item->submenu;
+		rtgui_menu_t *tmpmenu = RT_NULL;
+		
+		do{	
+			if(submenu->now_item->flag == RTGUI_MENU_POPUP &&
+				submenu->now_item->submenu != RT_NULL)
+			{	
+				tmpmenu = submenu->now_item->submenu;
 			}
-		}
+			else
+				tmpmenu = RT_NULL;
+			
+			if(submenu != RT_NULL && submenu->entrust_win != RT_NULL 
+				&& !RTGUI_WIDGET_IS_HIDE(submenu->entrust_win))
+			{
+				submenu->unfold = 0;
+				rtgui_topwin_hide(submenu->entrust_win);
+			}
+			submenu = tmpmenu; 
+
+		}while(submenu != RT_NULL);
+
+		rtgui_widget_focus(menu);
 	}
 
     /* update rbox widget */
@@ -303,8 +352,6 @@ static void rtgui_menu_onmouse(rtgui_menu_t* menu, rtgui_event_mouse_t* event)
 	{
 		rtgui_rect_t rect;
 
-		rtgui_widget_focus(menu);
-
 		rtgui_widget_get_rect(menu, &rect);
 		rtgui_widget_rect_to_device(menu, &rect);
 
@@ -318,17 +365,28 @@ static void rtgui_menu_onmouse(rtgui_menu_t* menu, rtgui_event_mouse_t* event)
 					rect.x2 = rect.x1 + menu_node->item_width;
 					if(rtgui_rect_contains_point(&rect, event->x, event->y) == RT_EOK) 
 					{	
+						rtgui_menu_active = 1;
 						if(event->button & RTGUI_MOUSE_BUTTON_DOWN)
 						{	/* down key touch off popup action */
 							if(menu_node->flag == RTGUI_MENU_POPUP)
-							{ 
+							{
 								rtgui_menu_set_selected(menu, sel);
 								rtgui_menu_on_item(menu);
 							}
 						}
 						else if(event->button & RTGUI_MOUSE_BUTTON_UP)
 						{	/* up key touch off normal action */
-							if(!(menu_node->flag == RTGUI_MENU_POPUP)) 
+							if(menu_node->flag == RTGUI_MENU_POPUP)
+							{
+								if(menu_node->submenu != RT_NULL && menu->unfold &&
+									!RTGUI_WIDGET_IS_HIDE(menu_node->submenu->entrust_win))
+								{
+									rtgui_topwin_activate(menu_node->submenu->entrust_win);	
+									rtgui_widget_focus(menu_node->submenu);
+									rtgui_theme_draw_menu_item(menu_node->submenu, menu_node->submenu->now_item);
+								}
+							}
+							else if(menu_node->flag == RTGUI_MENU_NORMAL) 
 							{
 								rtgui_menu_set_selected(menu, sel);
 								rtgui_menu_on_item(menu);
@@ -349,6 +407,7 @@ static void rtgui_menu_onmouse(rtgui_menu_t* menu, rtgui_event_mouse_t* event)
 					rect.y2 = rect.y1 + menu_node->item_height;
 					if(rtgui_rect_contains_point(&rect, event->x, event->y) == RT_EOK) 
 					{
+						rtgui_menu_active = 1;
 						if(event->button & RTGUI_MOUSE_BUTTON_DOWN)
 						{	/* down key touch off popup action */
 							if(menu_node->flag == RTGUI_MENU_POPUP) 
@@ -359,7 +418,17 @@ static void rtgui_menu_onmouse(rtgui_menu_t* menu, rtgui_event_mouse_t* event)
 						}
 						else if(event->button & RTGUI_MOUSE_BUTTON_UP)
 						{	/* up key touch off normal action */
-							if(!(menu_node->flag == RTGUI_MENU_POPUP)) 
+							if(menu_node->flag == RTGUI_MENU_POPUP) 
+							{
+								if(menu_node->submenu != RT_NULL && menu->unfold &&
+									!RTGUI_WIDGET_IS_HIDE(menu_node->submenu->entrust_win))
+								{
+									rtgui_topwin_activate(menu_node->submenu->entrust_win);
+									rtgui_widget_focus(menu_node->submenu);
+									rtgui_theme_draw_menu_item(menu_node->submenu, menu_node->submenu->now_item);	
+								}
+							}
+							else if(menu_node->flag == RTGUI_MENU_NORMAL) 
 							{
 								rtgui_menu_set_selected(menu, sel);
 								rtgui_menu_on_item(menu);
@@ -374,32 +443,40 @@ static void rtgui_menu_onmouse(rtgui_menu_t* menu, rtgui_event_mouse_t* event)
 				return;
 			}
 		}
+		else
+		{
+			rtgui_menu_active = 0;
+			
+			if (menu->now_item->flag == RTGUI_MENU_POPUP && 
+				menu->now_item->submenu != RT_NULL && menu->unfold &&
+				!RTGUI_WIDGET_IS_HIDE(menu->now_item->submenu))
+			{	
+				rtgui_menu_t *submenu;
+				rt_kprintf("mouse else.\n");
+				
+				submenu = rtgui_menu_get_last(menu);
+				rtgui_menu_hide_popup(submenu);
+			}
+		}
 	}
 }
 
-static rt_bool_t rtgui_menu_onfocus(PVOID wdt, rtgui_event_t* event)
+rt_bool_t rtgui_menu_check_sub_loop(rtgui_menu_t *menu)
 {
-	rtgui_menu_t *menu = wdt;
-	if(menu->entrust_win != RT_NULL)
+	if(RTGUI_WIDGET_IS_FOCUSED(menu))	
+		return RT_TRUE;
+	if(menu->now_item->flag == RTGUI_MENU_POPUP && 
+		menu->now_item->submenu != RT_NULL && menu->unfold)
 	{
-		rtgui_widget_focus(menu->entrust_win);
+		rtgui_menu_check_sub_loop(menu->now_item->submenu);	
 	}
-
-	return RT_TRUE;
-}
-
-static rt_bool_t rtgui_menu_onunfocus(PVOID wdt, rtgui_event_t* event)
-{
-	rtgui_menu_t *menu = wdt;
-
-	rtgui_menu_on_exit(menu);
-	return RT_TRUE;
+	return RT_FALSE;
 }
 
 /*
  * append a menu item
  * Input: menu   -- menu handle
- * 	      flag   -- RTGUI_MENU_FLAG_POPUP:popup menu item,0:normal menu item
+ * 	      flag   -- RTGUI_MENU_POPUP:popup menu item,0:normal menu item
  *        ID     -- if flags is MENU_FLAG_POPUP ,it is POPUP menu handle,else it is menu ID
  *        name   -- menu item name
  * return : TRUE -- succ.
@@ -470,7 +547,7 @@ rt_bool_t rtgui_menu_append(rtgui_menu_t *menu,rt_uint32_t flag,rt_uint32_t ID,c
 		menu->now_item = menu->head;
 	}
 
-	if(menu->item_count)
+	if(menu->item_count > 0)
 	{	/* adjust menu extent */
 		rtgui_rect_t rect={0};
 		rtgui_menu_item_t *menu_node = menu->head;
@@ -621,6 +698,12 @@ static void rtgui_menu_on_down(rtgui_menu_t* menu)
 		menu->func_updown(menu);
 	}
 	
+	if( menu->type == RTGUI_MENU_POPUP && 
+		menu->entrust_win != RT_NULL &&
+		!rtgui_win_is_activated(menu->entrust_win))
+	{
+		rtgui_topwin_activate(menu->entrust_win);
+	}
 	rtgui_menu_update_selected(menu);
 }
 
@@ -650,52 +733,67 @@ static void rtgui_menu_on_up(rtgui_menu_t* menu)
 		menu->func_updown(menu);
 	}
 	
+	if( menu->type == RTGUI_MENU_POPUP && 
+		menu->entrust_win != RT_NULL &&
+		!rtgui_win_is_activated(menu->entrust_win))
+	{
+		rtgui_topwin_activate(menu->entrust_win);
+	}
 	rtgui_menu_update_selected(menu);
 }
 
-//static void rtgui_menu_to_parent(rtgui_menu_t* menu)
-//{	
-//	RT_ASSERT(menu != RT_NULL);
-//
-//}
+static rt_bool_t rtgui_menu_entrust_win_deactivate(PVOID wdt, rtgui_event_t* event)
+{
+	rtgui_win_t *win;
+	rtgui_menu_t *menu;
+
+	win = wdt;
+	menu = (rtgui_menu_t*)RTGUI_WIDGET(win)->user_data;
+	
+	/* rt_kprintf("menu->entrust_win:%s, menu=%x, rtgui_menu_active=%x\n",
+		menu->entrust_win->title, menu, rtgui_menu_active); */
+
+	if(rtgui_menu_active) return RT_TRUE;
+
+	if (menu->now_item->flag == RTGUI_MENU_POPUP && 
+		menu->now_item->submenu != RT_NULL && 
+		!RTGUI_WIDGET_IS_HIDE(menu->now_item->submenu))
+	{
+		menu->unfold = 0;
+		rtgui_topwin_hide(menu->now_item->submenu->entrust_win);
+	}
+
+	rtgui_menu_hide_popup(menu);
+
+	return RT_TRUE;
+}
 
 static void rtgui_menu_to_submenu(rtgui_menu_t* menu)
 {	
+	rtgui_menu_t *submenu;
 	RT_ASSERT(menu != RT_NULL);
 
 	if(menu->now_item->flag == RTGUI_MENU_POPUP)
 	{
-		rtgui_menu_t *submenu = menu->now_item->submenu;
-
-		if(menu->unfold == RT_FALSE)
+		submenu = menu->now_item->submenu;
+		if(!menu->unfold)
 		{/* if it is unfold, so entrust_win was hide, show it frist. */
-			menu->unfold = RT_TRUE;
+			menu->unfold = 1;
 			rtgui_win_show(submenu->entrust_win, RT_FALSE);
-			RTGUI_CONTAINER(submenu->entrust_win)->focused = RTGUI_WIDGET(submenu);
 		}
-
-		rtgui_widget_focus(submenu->entrust_win);
+		if(!rtgui_win_is_activated(submenu->entrust_win))
+		{
+			rtgui_topwin_activate(submenu->entrust_win);
+		}
+		rtgui_widget_focus(submenu);
+		
 		/* set now item ,it's very improtant */
 		submenu->now_item = submenu->head;
-		rtgui_menu_update_selected(submenu);
+		rtgui_theme_draw_menu_item(submenu, submenu->now_item);
 	}
 }
 
-/* exit menu */
-static void rtgui_menu_on_exit(rtgui_menu_t* menu)
-{
-	rtgui_widget_unfocus(menu);
-
-	rtgui_theme_draw_menu(menu);
-
-	if(menu->now_item->bexit)
-	{
-		menu->now_item = RT_NULL;
-		menu->old_item = RT_NULL;
-	}
-}
-
-rt_bool_t rtgui_menu_event_handler(PVOID wdt, rtgui_event_t* event)
+static rt_bool_t rtgui_menu_event_handler(PVOID wdt, rtgui_event_t* event)
 {
 	rtgui_widget_t *widget = (rtgui_widget_t*)wdt;
 	rtgui_menu_t* menu = (rtgui_menu_t*)widget;
@@ -737,6 +835,7 @@ rt_bool_t rtgui_menu_event_handler(PVOID wdt, rtgui_event_t* event)
 				switch(key)
 				{
 					case RTGUIK_UP:
+						if(!rtgui_menu_active) rtgui_menu_active = 1;
 						/* goto prev menu item */
 						if(menu->type == RTGUI_MENU_POPUP)
 						{	
@@ -749,6 +848,7 @@ rt_bool_t rtgui_menu_event_handler(PVOID wdt, rtgui_event_t* event)
 						break;
 	
 					case RTGUIK_DOWN:
+						if(!rtgui_menu_active) rtgui_menu_active = 1;
 						/* goto next menu item */
 						if(menu->type == RTGUI_MENU_POPUP)
 						{
@@ -761,21 +861,23 @@ rt_bool_t rtgui_menu_event_handler(PVOID wdt, rtgui_event_t* event)
 						break;
 	
 					case RTGUIK_LEFT:
+						if(!rtgui_menu_active) rtgui_menu_active = 1;
 						/* goto prev menu item */
 						if(menu->type == RTGUI_MENU_POPUP)
 						{	/* change submenu into parent menu */
 							if(menu->farther->type == RTGUI_MENU_NORMAL)
 							{	/* frist order popup menu. */
-								menu->farther->unfold = RT_TRUE;
+								menu->farther->unfold = 1;
 								rtgui_widget_focus(menu->farther);
 								/* re-dispose event, turn it to "else" branch */
 								rtgui_menu_event_handler(menu->farther, event);
 							}
 							else
 							{	/* more level submenu */
-								menu->farther->unfold = RT_FALSE;
-								rtgui_win_hide(menu->entrust_win);
+								menu->farther->unfold = 0;
+								rtgui_topwin_hide(menu->entrust_win);
 								rtgui_widget_focus(menu->farther);
+								rtgui_theme_draw_menu_item(menu->farther, menu->farther->now_item);
 							}
 						}
 						else
@@ -786,6 +888,7 @@ rt_bool_t rtgui_menu_event_handler(PVOID wdt, rtgui_event_t* event)
 						break;
 	
 					case RTGUIK_RIGHT:
+						if(!rtgui_menu_active) rtgui_menu_active = 1;
 						/* goto next menu item */
 						if(menu->type == RTGUI_MENU_POPUP)
 						{	/* change popup menu into normal menu */
@@ -793,12 +896,12 @@ rt_bool_t rtgui_menu_event_handler(PVOID wdt, rtgui_event_t* event)
 							{	/* goto submenu */
 								rtgui_menu_to_submenu(menu);
 							}
-							else if(menu->farther->type == RTGUI_MENU_NORMAL)
+							else
 							{	/* farther menu is normal. */
-								menu->farther->unfold = RT_TRUE;
-								rtgui_widget_focus(menu->farther);
+								menu = rtgui_menu_hide_popup(menu);
+								menu->unfold = 1;
 								/* re-dispose event, turn it to "else" branch */
-								rtgui_menu_event_handler(menu->farther, event);
+								rtgui_menu_event_handler(menu, event);
 							}
 						}
 						else 
@@ -809,7 +912,14 @@ rt_bool_t rtgui_menu_event_handler(PVOID wdt, rtgui_event_t* event)
 						break;
 
 					case RTGUIK_RETURN:
+						if(menu->now_item->flag == RTGUI_MENU_POPUP)
+						{	/* goto event:kbd,RTGUIK_RIGHT */
+							ekbd->key = RTGUIK_RIGHT;
+							rtgui_menu_event_handler(menu, event);
+							break;	
+						}
 						rtgui_menu_on_item(menu);
+						rtgui_menu_active = 0;
 						break;
 
 					default: 

@@ -20,18 +20,14 @@
 #include <rtgui/widgets/button.h>
 #include <rtgui/rtgui_theme.h>
 
-static rt_bool_t rtgui_win_onfocus(PVOID wdt, rtgui_event_t* event);
-static rt_bool_t rtgui_win_onunfocus(PVOID wdt, rtgui_event_t* event);
-
 static void _rtgui_win_constructor(rtgui_win_t *win)
 {
 	/* init window attribute */
-	rtgui_widget_set_onfocus(win, rtgui_win_onfocus);
-	rtgui_widget_set_onunfocus(win, rtgui_win_onunfocus);
 	win->title			= RT_NULL;
+	win->image			= RT_NULL;
 	win->level			= RTGUI_WIN_LEVEL_NORMAL;
 	win->on_activate	= RT_NULL;
-	win->on_deactivate	= RT_NULL;
+	win->on_deactivate  = RT_NULL;
 	win->on_close		= RT_NULL;
 
 	win->modal_widget	= RT_NULL;
@@ -69,9 +65,10 @@ static void _rtgui_win_destructor(rtgui_win_t* win)
 	{
 		return;	 /* destroy in server failed */
 	}
-	
+		
 	/* release field */
 	rt_free(win->title);
+	rt_free(win->image);
 }
 
 rtgui_type_t *rtgui_win_type_get(void)
@@ -92,7 +89,7 @@ rtgui_type_t *rtgui_win_type_get(void)
 rtgui_win_t* rtgui_win_create(PVOID parent, const char* title, rtgui_rect_t *rect, rt_uint32_t style)
 {
 	rtgui_win_t* win;
-	//取得GUI服务器线程
+	/* get GUI server thread */
 	struct rt_thread* server = rtgui_thread_get_server();
 	rtgui_thread_t* thread;
 
@@ -104,7 +101,7 @@ rtgui_win_t* rtgui_win_create(PVOID parent, const char* title, rtgui_rect_t *rec
 	win = rtgui_widget_create(RTGUI_WIN_TYPE);
 	
 	if(win != RT_NULL)
-	{//根据样式,设置一些尺寸参数
+	{
 		/* set window title */
 		if(title != RT_NULL) 
 			win->title = rt_strdup(title);
@@ -113,22 +110,22 @@ rtgui_win_t* rtgui_win_create(PVOID parent, const char* title, rtgui_rect_t *rec
 
 		win->style = style;
 
-		//设置默认的尺寸参数
+		/* set default size */
 		win->title_height = RTGUI_WIN_TITLE_HEIGHT;
 		win->status_height= RTGUI_WIN_STATUS_HEIGHT;
 		win->menu_height  = RTGUI_WIN_MENU_HEIGHT;
 		
-		RTGUI_WIDGET(win)->toplevel = RTGUI_WIDGET(win); //窗口自身作为顶级控件
+		RTGUI_WIDGET(win)->toplevel = RTGUI_WIDGET(win); /* window is a toplevel widget */
 		/* set extent of win */
 		rtgui_widget_set_rect(win, rect); 
 		rtgui_container_add_child(parent, win);
 
 		thread = rtgui_thread_self();
-		win->tid = thread->tid;//将窗口挂在当前线程下
+		win->tid = thread->tid;/* use current thread */
+		
+		rtgui_thread_set_widget(RTGUI_WIDGET(win));
 
-		rtgui_thread_set_widget(RTGUI_WIDGET(win));/* 允许多个win共用一个thread */
-
-		{//发送一个创建消息
+		{/* send a create window event. */
 			rtgui_event_win_t ewin;
 			RTGUI_EVENT_WIN_CREATE_INIT(&ewin);
 			ewin.wid = win;
@@ -136,7 +133,7 @@ rtgui_win_t* rtgui_win_create(PVOID parent, const char* title, rtgui_rect_t *rec
 			if(rtgui_thread_send_sync(server, RTGUI_EVENT(&ewin),sizeof(rtgui_event_win_t)) != RT_EOK)
 			{	
 				rt_kprintf("create win: %s failed\n", win->title);
-				return RT_FALSE;
+				return RT_NULL;
 			}
 		}
 	}
@@ -155,7 +152,7 @@ void rtgui_win_destroy(rtgui_win_t* win)
 	rtgui_widget_destroy(win);
 }
 
-//获得控件的容器窗口
+/* get widget's container window */
 rtgui_win_t* rtgui_win_get_win_by_widget(PVOID wdt)
 {
 	rtgui_widget_t *parent=(rtgui_widget_t*)wdt;
@@ -174,7 +171,7 @@ rtgui_win_t* rtgui_win_get_win_by_widget(PVOID wdt)
 	return RT_NULL;
 }
 
-//窗口关闭时的事件处理
+/* window close event handler */
 void rtgui_win_close(PVOID wdt, rtgui_event_t *event)
 {
 	rtgui_win_t* win = RT_NULL;
@@ -187,7 +184,7 @@ void rtgui_win_close(PVOID wdt, rtgui_event_t *event)
 	if(win != RT_NULL)
 	{
 		rtgui_panel_t *panel=rtgui_panel_get();
-		//置窗口状态为关闭状态
+		/* set window status is closed. */
 		win->status |= RTGUI_WIN_STATUS_CLOSED;
 		RTGUI_CONTAINER(panel)->focused	= RT_NULL;
 
@@ -215,14 +212,13 @@ void rtgui_win_show(rtgui_win_t* win, rt_bool_t modal)
 	else rtgui_widget_update(win);
 
 	if(modal == RT_TRUE)
-	{//以模式方式显示
+	{/* display by modal. */
 		rtgui_widget_t *parent_widget = RTGUI_WIDGET_PARENT(win);
 		
 		if(parent_widget != RT_NULL)
 		{
 			/* set style */
 			win->status |= RTGUI_WIN_STATUS_MODAL;
-			//win->modal_widget = win;//这时没有指定模式控件,则指向自身
 
 			if(RTGUI_IS_PANEL(parent_widget))
 			{
@@ -376,12 +372,12 @@ rt_bool_t rtgui_win_event_handler(PVOID wdt, rtgui_event_t* event)
 			/* exit event loop */
 			return RT_TRUE;
 
-		case RTGUI_EVENT_WIN_MAX:	//最大化窗口
-			// TODO: Place code here.
+		case RTGUI_EVENT_WIN_MAX:
+			/* TODO: Place code here. */
 			break;
 
-		case RTGUI_EVENT_WIN_MIN:	//最小化窗口,(隐藏窗口)
-			// TODO: Place code here.
+		case RTGUI_EVENT_WIN_MIN:
+			/* TODO: Place code here. */
 			break;
 
 		case RTGUI_EVENT_WIN_MOVE: 
@@ -393,48 +389,9 @@ rt_bool_t rtgui_win_event_handler(PVOID wdt, rtgui_event_t* event)
 			break;
 
 		case RTGUI_EVENT_WIN_ACTIVATE:
-			if(RTGUI_WIDGET_IS_HIDE(win))
-			{
-				rt_kprintf("activate window, but window is hide!\n");
-			}
-	
-			win->status |= RTGUI_WIN_STATUS_ACTIVATE;
-
-			if(widget->on_draw != RT_NULL) 
-				widget->on_draw(widget, event);
-			else
-				rtgui_widget_update(win);
-	
-			if (win->on_activate != RT_NULL)
-			{
-				win->on_activate(widget, event);
-			}
 			break;
 	
 		case RTGUI_EVENT_WIN_DEACTIVATE:
-			if(RTGUI_WIN_IS_MODAL_MODE(win))
-			{
-				/* do not deactivate a modal win, re-send win-show event */
-				rtgui_event_win_t eshow;
-				RTGUI_EVENT_WIN_SHOW_INIT(&eshow);
-				eshow.wid = win;
-	
-				rtgui_thread_send(rtgui_thread_get_server(), RTGUI_EVENT(&eshow),sizeof(rtgui_event_win_t));
-			}
-			else
-			{
-				win->status &= ~RTGUI_WIN_STATUS_ACTIVATE;
-
-				if(widget->on_draw != RT_NULL) 
-					widget->on_draw(widget, event);
-				else 
-					rtgui_win_ondraw(win);
-	
-				if (win->on_deactivate != RT_NULL)
-				{
-					win->on_deactivate(widget, event);
-				}
-			}
 			break;	
 		case RTGUI_EVENT_PAINT:
 			if(widget->on_draw != RT_NULL) widget->on_draw(widget, event);
@@ -450,7 +407,7 @@ rt_bool_t rtgui_win_event_handler(PVOID wdt, rtgui_event_t* event)
 			}
 	 		
 			if(rtgui_container_dispatch_mouse_event(RTGUI_CONTAINER(win),(rtgui_event_mouse_t*)event) == RT_FALSE)
-			{//派发消息
+			{/* dispatch event */
 				if(widget->on_mouseclick != RT_NULL)
 				{
 					return widget->on_mouseclick(widget, event);
@@ -621,32 +578,6 @@ char* rtgui_win_get_title(rtgui_win_t* win)
 	return win->title;
 }
 
-static rt_bool_t rtgui_win_onfocus(PVOID wdt, rtgui_event_t* event)
-{
-	rtgui_win_t *win = wdt;
-
-	/* window catch focus, it turned status into activate */
-	if(!rtgui_win_is_activated(win))
-	{
-		rtgui_topwin_activate(win);
-	}
-
-	return RT_TRUE;
-}
-
-static rt_bool_t rtgui_win_onunfocus(PVOID wdt, rtgui_event_t* event)
-{
-	rtgui_win_t *win = wdt;
-
-	/* window lose focus, it turned status into deactivate */
-	if(rtgui_win_is_activated(win))
-	{
-		rtgui_topwin_deactivate(win);
-	}
-
-	return RT_TRUE;
-}
-
 rtgui_point_t rtgui_win_get_client_zero(rtgui_win_t *win)
 {
 	rtgui_point_t p={0};
@@ -660,7 +591,7 @@ rtgui_point_t rtgui_win_get_client_zero(rtgui_win_t *win)
 	return p;
 }
 
-//返回窗口客户区区域
+/* return window's client area */
 void rtgui_win_get_client_rect(rtgui_win_t *win, rtgui_rect_t *rect)
 {
 	rtgui_widget_get_rect(win, rect);
@@ -668,18 +599,18 @@ void rtgui_win_get_client_rect(rtgui_win_t *win, rtgui_rect_t *rect)
 	if(win->style & RTGUI_WIN_BORDER)
 		rtgui_rect_inflate(rect, -RTGUI_WIDGET_BORDER(win));
 	
-	if(win->style & RTGUI_WIN_TITLE)//有标题栏则减去标题栏的高度
+	if(win->style & RTGUI_WIN_TITLE)
 		rect->y1 += win->title_height;
 
 	if(win->style & RTGUI_WIN_MENU)
 		rect->y1 += win->menu_height;
 	
-	if(win->style & RTGUI_WIN_STATUS)//有状态栏则减去状态栏的高度	
+	if(win->style & RTGUI_WIN_STATUS)
 		rect->y2 -= win->status_height;
 
 }
 
-//返回窗口的标题栏区域
+/* return winodw's title bar area */
 void rtgui_win_get_title_rect(rtgui_win_t *win, rtgui_rect_t *rect)
 {
 	rtgui_widget_get_rect(win, rect);
@@ -698,7 +629,7 @@ void rtgui_win_get_title_rect(rtgui_win_t *win, rtgui_rect_t *rect)
 	}
 }
 
-//返回窗口的关闭按钮区域
+/* return window's closebox area */
 void rtgui_win_get_closebox_rect(rtgui_win_t *win, rtgui_rect_t *rect)
 {
 	rtgui_win_get_title_rect(win,rect);
@@ -712,7 +643,7 @@ void rtgui_win_get_closebox_rect(rtgui_win_t *win, rtgui_rect_t *rect)
 	}
 }
 
-//返回窗口的最大化按钮区域
+/* return window's maximum box area */
 void rtgui_win_get_maxbox_rect(rtgui_win_t *win, rtgui_rect_t *rect)
 {
 	rtgui_win_get_closebox_rect(win,rect);
@@ -722,7 +653,7 @@ void rtgui_win_get_maxbox_rect(rtgui_win_t *win, rtgui_rect_t *rect)
 	}
 }
 
-//返回窗口的最小化按钮区域
+/* return window's minimum box area */
 void rtgui_win_get_minbox_rect(rtgui_win_t *win, rtgui_rect_t *rect)
 {
 	rtgui_win_get_closebox_rect(win,rect);

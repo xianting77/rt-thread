@@ -286,7 +286,7 @@ void rtgui_list_view_update_list(rtgui_list_view_t* view, rt_uint16_t old_item)
 		return;
 	}
 
-	//绘制上一个项目
+	/* draw old item */
 	rtgui_widget_get_rect(view, &rect);
 	item_rect = rect;
 	item_rect.x1 += 2;
@@ -315,7 +315,7 @@ void rtgui_list_view_update_list(rtgui_list_view_t* view, rt_uint16_t old_item)
 	}
 	rtgui_dc_draw_text(dc, item->name, &item_rect);
 
-	//绘制当前项
+	/* draw current item */
 	item_rect = rect;
 	/* get current item's rect */
 	item_rect.x1 += 2;

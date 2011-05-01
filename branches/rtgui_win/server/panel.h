@@ -34,11 +34,11 @@ typedef struct rtgui_panel rtgui_panel_t;
 struct rtgui_panel
 {
 	rtgui_container_t   parent;
-	struct rt_thread*	tid;		//panelÏß³Ì
+	struct rt_thread*	tid;		
 
 	PVOID				modal_widget;
-	rt_uint32_t 		status;		//panelµÄ×´Ì¬
-	rtgui_image_t*		image;		//±³¾°Í¼Æ¬
+	rt_uint32_t 		status;		
+	rtgui_image_t*		image;		/* background image */
 };
 
 extern rtgui_rect_t *external_clip_rect;

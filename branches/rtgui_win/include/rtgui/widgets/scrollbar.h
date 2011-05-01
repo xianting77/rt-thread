@@ -32,21 +32,20 @@ extern "C" {
 
 /* scrollbar status/positions*/
 #define SBAR_UNKNOWN        0x0000
-#define SBAR_LEFTARROW      0x0001 //在向左按钮上
-#define SBAR_RIGHTARROW     0x0002 //在向右按钮上
-#define SBAR_LEFTSPACE      0x0004 //在活动块左侧空白处
-#define SBAR_RIGHTSPACE     0x0008 //在活动块右侧空白处
-#define SBAR_HORZTHUMB      0x0010 //活动块水平滑动
-#define SBAR_UPARROW        0x0020 //状态向上
-#define SBAR_DOWNARROW      0x0040 //状态向下
-#define SBAR_UPSPACE        0x0080 //在活动块上侧空白处
-#define SBAR_DOWNSPACE      0x0100 //在活动块下侧空白处
-#define SBAR_VERTTHUMB      0x0200 //活动块垂直滑动
-
-#define SBAR_UPTHUMB		0x0400 //活动块向上滑动
-#define SBAR_DOWNTHUMB		0x0800 //活动块向下滑动
-#define SBAR_LEFTTHUMB		0x1000 //活动块向左滑动
-#define SBAR_RIGHTTHUMB		0x2000 //活动块向右滑动
+#define SBAR_LEFTARROW      0x0001
+#define SBAR_RIGHTARROW     0x0002
+#define SBAR_LEFTSPACE      0x0004
+#define SBAR_RIGHTSPACE     0x0008
+#define SBAR_HORZTHUMB      0x0010
+#define SBAR_UPARROW        0x0020
+#define SBAR_DOWNARROW      0x0040
+#define SBAR_UPSPACE		0x0080 
+#define SBAR_DOWNSPACE      0x0100
+#define SBAR_VERTTHUMB      0x0200
+#define SBAR_UPTHUMB		0x0400
+#define SBAR_DOWNTHUMB		0x0800
+#define SBAR_LEFTTHUMB		0x1000 
+#define SBAR_RIGHTTHUMB		0x2000 
 
 struct rtgui_scrollbar
 {
@@ -63,7 +62,7 @@ struct rtgui_scrollbar
 	/* position 1:1 width of scrollbar */
 	rt_int16_t count;
 	
-	PVOID widgetlnk;//链接的控件
+	PVOID widgetlnk;/* be connected widget */
 	rt_bool_t (*on_scroll) (PVOID wdt, rtgui_event_t* event);
 };
 typedef struct rtgui_scrollbar rtgui_scrollbar_t;

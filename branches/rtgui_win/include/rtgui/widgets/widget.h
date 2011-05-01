@@ -81,12 +81,12 @@ struct rtgui_widget
 #define RTGUI_WIDGET_BORDER_STYLE(w)	(RTGUI_WIDGET(w))->border_style
 #define RTGUI_WIDGET_CLIP(w)			(RTGUI_WIDGET(w))->clip
 
-#define RTGUI_WIDGET_FLAG_DEFAULT		0x0000	//默认
-#define RTGUI_WIDGET_FLAG_HIDE			0x0001	//隐藏的
-#define RTGUI_WIDGET_FLAG_DISABLE		0x0002	//无效的
-#define RTGUI_WIDGET_FLAG_FOCUS			0x0004	//焦点的
-#define RTGUI_WIDGET_FLAG_TRANSPARENT	0x0008	//透明的
-#define RTGUI_WIDGET_FLAG_FOCUSABLE		0x0010	//可获得焦点的
+#define RTGUI_WIDGET_FLAG_DEFAULT		0x0000	
+#define RTGUI_WIDGET_FLAG_HIDE			0x0001	
+#define RTGUI_WIDGET_FLAG_DISABLE		0x0002	
+#define RTGUI_WIDGET_FLAG_FOCUS			0x0004	
+#define RTGUI_WIDGET_FLAG_TRANSPARENT	0x0008	
+#define RTGUI_WIDGET_FLAG_FOCUSABLE		0x0010	
 #define RTGUI_WIDGET_FLAG_DC_VISIBLE	0x0100
 
 #define RTGUI_WIDGET_UNHIDE(w)			RTGUI_WIDGET_FLAG(w) &= ~RTGUI_WIDGET_FLAG_HIDE
@@ -139,6 +139,7 @@ rt_uint16_t rtgui_widget_get_width(PVOID wdt);
 rt_uint16_t rtgui_widget_get_height(PVOID wdt);
 
 void rtgui_widget_set_style(PVOID wdt, rt_uint32_t style);
+rt_bool_t rtgui_widget_contains_point(PVOID wdt, int x, int y);
 void rtgui_widget_point_to_device(PVOID wdt, rtgui_point_t *point);/* get the physical position of a logic point on widget */
 void rtgui_widget_rect_to_device(PVOID wdt, rtgui_rect_t *rect);/* get the physical position of a logic rect on widget */
 void rtgui_widget_point_to_logic(PVOID wdt, rtgui_point_t *point);/* get the logic position of a physical point on widget */

@@ -25,10 +25,7 @@ extern "C" {
 #define RTGUI_MENU_MARGIN_W	8
 #define RTGUI_MENU_MARGIN_H	4
 
-#define MENU_ADD_ITEM (System,Name,ID) \
-rtgui_menu_append(hPopupMenu_##System, MF_ENABLED, ID, Name); 
-
-/* menu item flag */
+/* menu type,menu item flag */
 #define RTGUI_MENU_NORMAL	0x00000000L
 #define RTGUI_MENU_POPUP	0x00000040L
 

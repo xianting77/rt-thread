@@ -300,7 +300,7 @@ rtgui_filelist_view_t* rtgui_filelist_view_create(PVOID parent, const char* dire
 
 		rtgui_container_add_child(parent, fview);
 		
-		{//创建卷标控件
+		{/* create scrollbar */
 			rt_uint32_t sLeft,sTop,sw=RTGUI_DEFAULT_SB_WIDTH,sLen;
 			sLeft = rtgui_rect_width(rect)-RTGUI_WIDGET_BORDER(fview)-sw;
 			sTop = RTGUI_WIDGET_BORDER(fview);
@@ -311,7 +311,7 @@ rtgui_filelist_view_t* rtgui_filelist_view_create(PVOID parent, const char* dire
 			{
 				fview->sbar->widgetlnk = fview;
 				fview->sbar->on_scroll = rtgui_fileview_sbar_handle;
-				RTGUI_WIDGET_HIDE(fview->sbar);//默认隐藏滚动条
+				RTGUI_WIDGET_HIDE(fview->sbar);/* default hid scrollbar */
 			}
 		}
 
@@ -512,7 +512,7 @@ void rtgui_filelist_view_ondraw(rtgui_filelist_view_t* fview)
 	rtgui_dc_end_drawing(dc);
 }
 
-//更新FileView的界面
+/* update filelist view */
 void rtgui_filelist_view_update_current(rtgui_filelist_view_t* fview)
 {
 	rtgui_filelist_view_item_t* item;
@@ -525,7 +525,7 @@ void rtgui_filelist_view_update_current(rtgui_filelist_view_t* fview)
 	dc = rtgui_dc_begin_drawing(fview);
 	if(dc == RT_NULL)return;
 
-	//当文件夹为空时，不处理
+	/* if directory is null, no dispost */
 	if(fview->items==RT_NULL)return;
 
 	rtgui_widget_get_rect(fview, &rect);
@@ -535,8 +535,8 @@ void rtgui_filelist_view_update_current(rtgui_filelist_view_t* fview)
 	if((fview->old_aloc >= fview->frist_aloc) && 
 	   (fview->old_aloc < fview->frist_aloc+fview->item_per_page) &&
 	   (fview->old_aloc != fview->now_aloc))
-	{//这些条件,可以最大限度的减少绘图闪烁现象
-		//取得旧的项目
+	{/* these condition dispell blinked when drawed */
+		/* get old item rect */
 		item_rect = rect;
 		item_rect.x1 += RTGUI_WIDGET_BORDER(fview);
 		item_rect.x2 -= RTGUI_WIDGET_BORDER(fview);
@@ -544,12 +544,12 @@ void rtgui_filelist_view_update_current(rtgui_filelist_view_t* fview)
 		item_rect.y1 += ((fview->old_aloc-fview->frist_aloc) % fview->item_per_page) * (1 + SELECTED_HEIGHT);
 		item_rect.y2 = item_rect.y1 + (1 + SELECTED_HEIGHT);
 	
-		//取得图像矩形
+		/* get image rect */
 		image_rect.x1 = RTGUI_WIDGET_DEFAULT_MARGIN; image_rect.y1 = 0;
 		image_rect.x2 = RTGUI_WIDGET_DEFAULT_MARGIN + file_image->w; image_rect.y2 = file_image->h;
 		rtgui_rect_moveto_align(&item_rect, &image_rect, RTGUI_ALIGN_CENTER_VERTICAL);
 		
-		//绘制旧的项目
+		/* draw old item */
 		item = &(fview->items[fview->old_aloc]);
 		if(item->type == RTGUI_FITEM_FILE) /* draw item image */
 			rtgui_image_blit(file_image, dc, &image_rect);
@@ -563,7 +563,7 @@ void rtgui_filelist_view_update_current(rtgui_filelist_view_t* fview)
 		rtgui_dc_fill_rect(dc,&item_rect);
 		rtgui_dc_draw_text(dc, item->name, &item_rect);
 	}
-	//绘制当前项目
+	/* draw current item */
 	item_rect = rect;
 	item_rect.x1 += RTGUI_WIDGET_BORDER(fview);
 	item_rect.x2 -= RTGUI_WIDGET_BORDER(fview);
@@ -665,8 +665,6 @@ rt_bool_t rtgui_filelist_view_event_handler(PVOID wdt, rtgui_event_t* event)
 	
 				emouse = (rtgui_event_mouse_t*)event;
 	
-				//计算选择的项目位置
-	
 				rtgui_widget_focus(fview);
 				/* get physical extent information */
 				rtgui_widget_get_rect(fview, &rect);
@@ -686,7 +684,6 @@ rt_bool_t rtgui_filelist_view_event_handler(PVOID wdt, rtgui_event_t* event)
 
 					if((i < fview->item_count) && (i < fview->item_per_page))
 					{
-						//设置选择项
 						if(emouse->button & RTGUI_MOUSE_BUTTON_DOWN)
 						{
 							fview->old_aloc = fview->now_aloc;
@@ -717,19 +714,19 @@ rt_bool_t rtgui_filelist_view_event_handler(PVOID wdt, rtgui_event_t* event)
 	            {	
 					switch (ekbd->key)
 	                {
-		                case RTGUIK_UP: //一次上翻一条
+		                case RTGUIK_UP:
 							if(fview->now_aloc > 0)
 							{
 								fview->old_aloc = fview->now_aloc;
 								fview->now_aloc --;
 
 								if(fview->now_aloc < fview->frist_aloc)
-								{//向上翻页了
+								{/* turn up page */
 									fview->frist_aloc = fview->now_aloc;
 									rtgui_filelist_view_ondraw(fview);
 								}
 								else
-								{//当前页中
+								{/* current page */
 									rtgui_filelist_view_update_current(fview);
 								}
 
@@ -741,19 +738,19 @@ rt_bool_t rtgui_filelist_view_event_handler(PVOID wdt, rtgui_event_t* event)
 							}
 							return RT_TRUE;
 		
-		                case RTGUIK_DOWN: //一次下翻一条
+		                case RTGUIK_DOWN: 
 							if(fview->now_aloc < fview->item_count-1)
 							{
 								fview->old_aloc = fview->now_aloc;
 								fview->now_aloc ++;
 								
 								if(fview->now_aloc >= fview->frist_aloc+fview->item_per_page)
-								{//翻页了
+								{/* turn down page */
 									fview->frist_aloc++;
 									rtgui_filelist_view_ondraw(fview);
 								}
 								else
-								{//在当前页中
+								{/* in current page */
 									rtgui_filelist_view_update_current(fview);
 								}
 								if(fview->sbar && !RTGUI_WIDGET_IS_HIDE(fview))
@@ -872,7 +869,7 @@ void rtgui_filelist_view_set_directory(rtgui_filelist_view_t* fview, const char*
 
 	fview->frist_aloc = 0; 
 
-    //首先清除文件项目
+    /* clear file information */
     rtgui_filelist_view_clear(fview);
     if(directory != RT_NULL)
     {
@@ -882,11 +879,11 @@ void rtgui_filelist_view_set_directory(rtgui_filelist_view_t* fview, const char*
 		struct dirent* dirent;
 
 		fview->item_count = 0;
-		//打开文件夹			   
+		/* open directory */
         dir = opendir(directory); 
 		if (dir == RT_NULL) return;
 
-		//设置当前文件夹
+		/* set current directory */
 		if(fview->current_dir != RT_NULL) 
 			rt_free(fview->current_dir);
 		fview->current_dir = rt_strdup(directory);
@@ -920,13 +917,13 @@ void rtgui_filelist_view_set_directory(rtgui_filelist_view_t* fview, const char*
 		}
 		rtgui_widget_update_clip(fview);
 
-		//开辟一个可以放下所有项目的空间
+		/* apply to memory for store all items. */
 		fview->items = (rtgui_filelist_view_item_t*) rt_malloc(sizeof(rtgui_filelist_view_item_t) * fview->item_count);
 
-		if(fview->items == RT_NULL) goto __return; /*under the folder has not sub files. */
+		if(fview->items == RT_NULL) goto __return; /* under the folder has not sub files. */
 
-		//重新打开文件夹
-		dir = opendir(directory);  //rt_kprintf("2.set_directory, dir=%x, directory=%s\n",dir,directory);
+		/* reopen directory */
+		dir = opendir(directory);
 		if(dir == RT_NULL)  goto __return;
 
 		for(i=0; i < fview->item_count; i ++)
@@ -939,7 +936,7 @@ void rtgui_filelist_view_set_directory(rtgui_filelist_view_t* fview, const char*
 
 			rt_memset(&s, 0, sizeof(struct stat));
 
-			//构建每个文件的全路径
+			/* get fullpath of file */
 			if(directory[strlen(directory) - 1] != PATH_SEPARATOR)
 				rt_sprintf(fullpath, "%s%c%s", directory, PATH_SEPARATOR, dirent->d_name);
 			else
@@ -987,7 +984,7 @@ static rt_bool_t rtgui_fileview_onunfocus(PVOID wdt, rtgui_event_t* event)
 	if(fview == RT_NULL) return RT_FALSE;
 
 	if(!RTGUI_WIDGET_IS_FOCUSED(fview))
-	{//清除焦点框
+	{/* clear focus rect */
 		rtgui_filelist_view_update_current(fview);	
 	}
 

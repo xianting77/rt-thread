@@ -118,18 +118,27 @@ rt_err_t rtgui_topwin_remove(rtgui_win_t* win)
  */
 rt_err_t rtgui_topwin_activate(rtgui_win_t* win)
 {	
+	rtgui_event_win_t event;
+
 	if((rtgui_server_focus_win != RT_NULL) && (rtgui_server_focus_win != win))
-	{
+	{	/* deactivate the old focus win  */
 		rtgui_topwin_deactivate(rtgui_server_focus_win);
 	}
 	
 	win->status |= RTGUI_WIN_STATUS_ACTIVATE;
 	rtgui_server_focus_win = win;
-
 	rtgui_widget_update_clip(win);
-
 	rtgui_widget_focus(win);
 	rtgui_widget_update(win);
+
+	/* activate the raised window */
+	RTGUI_EVENT_WIN_ACTIVATE_INIT(&event);
+	event.wid = win;
+
+	if (win->on_activate != RT_NULL)
+	{
+		win->on_activate(win, &(event.parent));
+	}
 
 	return RT_EOK;
 }
@@ -139,14 +148,24 @@ rt_err_t rtgui_topwin_activate(rtgui_win_t* win)
  */
 rt_err_t rtgui_topwin_deactivate(rtgui_win_t* win)
 {
-	win->status &= ~RTGUI_WIN_STATUS_ACTIVATE;
+	rtgui_event_win_t event;
 
+	win->status &= ~RTGUI_WIN_STATUS_ACTIVATE;
 	/* it is acitvate before draw window title */
+	rtgui_widget_update_clip(win);
 	rtgui_theme_draw_win_title(win);
 
 	if(rtgui_server_focus_win == win)
 	{
 		rtgui_server_focus_win = RT_NULL;
+	}
+
+	RTGUI_EVENT_WIN_DEACTIVATE_INIT(&event);
+	event.wid = win;
+
+	if (win->on_deactivate != RT_NULL)
+	{
+		win->on_deactivate(win, &(event.parent));
 	}
 
 	return RT_EOK;
@@ -259,6 +278,7 @@ rt_err_t rtgui_topwin_hide(rtgui_win_t* win)
 		/* insert node to hide list */
 		rtgui_list_insert(&_rtgui_win_hide_list, &(win->list));
 		RTGUI_WIDGET_HIDE(win);
+		win->status &= ~RTGUI_WIN_STATUS_ACTIVATE;
 		/* update external clip informations */
 		rtgui_update_external_clip_info();
 
@@ -268,6 +288,7 @@ rt_err_t rtgui_topwin_hide(rtgui_win_t* win)
 			/* update overlap area */
 			rtgui_toplevel_update_clip(wid, &rect, front_num);
 			rtgui_win_ondraw(wid);
+			rtgui_widget_update_clip(wid);
 			front_num++;
 		}
 
@@ -277,7 +298,6 @@ rt_err_t rtgui_topwin_hide(rtgui_win_t* win)
 			rtgui_win_t* wnd = rtgui_list_entry(_rtgui_win_show_list.next,rtgui_win_t, list);
 			
 			rtgui_topwin_raise(wnd);
-			rtgui_server_focus_win = wnd;
 		}
 		else
 		{
@@ -604,6 +624,11 @@ void rtgui_panel_update_clip(PVOID wdt)
 			rtgui_region_subtract_rect(&(widget->clip), &(widget->clip),&(child->extent));
 			rtgui_panel_update_clip(child);
 		}
+	}
+	
+	if(rtgui_server_focus_win != RT_NULL && rtgui_win_is_activated(rtgui_server_focus_win))
+	{	/* regain raw clip of focus win. because it is possible by change. */
+		rtgui_widget_update_clip(rtgui_server_focus_win);
 	}		
 }
 

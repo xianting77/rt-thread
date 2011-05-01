@@ -14,6 +14,8 @@
 
 #include <rtgui/widgets/container.h>
 #include <rtgui/widgets/window.h>
+#include <rtgui/widgets/menu.h>
+#include <rtgui/widgets/listbox.h>
 
 static void _rtgui_container_constructor(rtgui_container_t *container)
 {
@@ -64,7 +66,7 @@ rtgui_type_t *rtgui_container_type_get(void)
 
 	return container_type;
 }
-
+#include <rtgui/widgets/view.h>
 rt_bool_t rtgui_container_dispatch_event(rtgui_container_t *container, rtgui_event_t* event)
 {
 	/* handle in child widget */
@@ -75,11 +77,10 @@ rt_bool_t rtgui_container_dispatch_event(rtgui_container_t *container, rtgui_eve
 		rtgui_widget_t* w; 
 		w = rtgui_list_entry(node, rtgui_widget_t, sibling);
 		if(RTGUI_WIDGET_IS_HIDE(w)) continue; /* it's hide, respond no to request */
-		
+		if(RTGUI_IS_WIN(w)) continue; /* ignore window. */
 		if(RTGUI_WIDGET_EVENT_HANDLE(w) != RT_NULL)
 			RTGUI_WIDGET_EVENT_CALL(w, event);
 	}
-
 	return RT_FALSE;
 }
 
@@ -96,6 +97,11 @@ rt_bool_t rtgui_container_dispatch_mouse_event(rtgui_container_t *container, rtg
 
 		if(rtgui_rect_contains_point(&(w->extent), event->x, event->y) == RT_EOK)
 		{	/* it maybe nesting, pass on in family from parent to chid  */
+			if(RTGUI_WIDGET_EVENT_HANDLE(w) != RT_NULL)
+				return RTGUI_WIDGET_EVENT_CALL(w,(rtgui_event_t*)event);
+		}
+		else if(RTGUI_IS_MENU(w) || (RTGUI_IS_LISTBOX(w) && RTGUI_LISTBOX(w)->ispopup))
+		{	/* it dispose point outside widget's extent too. */
 			if(RTGUI_WIDGET_EVENT_HANDLE(w) != RT_NULL)
 				return RTGUI_WIDGET_EVENT_CALL(w,(rtgui_event_t*)event);
 		}
@@ -256,10 +262,10 @@ void rtgui_container_remove_child(rtgui_container_t *container, PVOID wdt)
 	child->parent = RT_NULL;
 	child->toplevel = RT_NULL;
 
-	if(!RTGUI_WIDGET_IS_HIDE(child))
+	/*if(!RTGUI_WIDGET_IS_HIDE(child))
 	{
 		rtgui_widget_update_clip(container);
-	}
+	}*/
 }
 
 /* destroy all child of box */

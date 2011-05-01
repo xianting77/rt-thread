@@ -213,7 +213,7 @@ static rt_bool_t rtgui_button_onunfocus(PVOID wdt, rtgui_event_t* event)
 	rtgui_widget_get_rect(btn, &rect);
 
 	if(!RTGUI_WIDGET_IS_FOCUSED(btn))
-	{//Çå³ý½¹µã¿ò
+	{/* clear focus rect */
 		rtgui_color_t color;
 		rtgui_rect_inflate(&rect, -2);
 		color = RTGUI_DC_FC(dc);

@@ -42,8 +42,11 @@ static void _rtgui_listbox_constructor(rtgui_listbox_t *box)
 
 	box->items = RT_NULL;
 	box->sbar = RT_NULL;
-
+#ifdef LB_USING_MULTI_SEL
+	box->multi_sel = 0;
+#endif
 	box->on_item = RT_NULL;
+	box->updown = RT_NULL;
 
 	box->get_count = rtgui_listbox_get_item_count;
 	box->add_item = rtgui_listbox_add_item;
@@ -90,7 +93,7 @@ rtgui_listbox_t* rtgui_listbox_create(PVOID parent, int left,int top,int w,int h
 		rtgui_widget_set_style(box,style);
 
 		if(box->sbar == RT_NULL)
-		{//创建卷标控件
+		{/* create scrollbar */
 			rt_uint32_t sLeft,sTop,sWidth=RTGUI_DEFAULT_SB_WIDTH,sLen;
 			sLeft = rtgui_rect_width(rect)-RTGUI_WIDGET_BORDER(box)-sWidth;
 			sTop = RTGUI_WIDGET_BORDER(box);
@@ -102,7 +105,7 @@ rtgui_listbox_t* rtgui_listbox_create(PVOID parent, int left,int top,int w,int h
 			{
 				box->sbar->widgetlnk = (PVOID)box;
 				box->sbar->on_scroll = rtgui_listbox_sbar_handle;
-				RTGUI_WIDGET_HIDE(box->sbar);//默认隐藏滚动条		
+				RTGUI_WIDGET_HIDE(box->sbar);/* default hide scrollbar */
 			}
 		}
 	}
@@ -122,14 +125,17 @@ void rtgui_listbox_set_items(rtgui_listbox_t* box, rtgui_listbox_item_t* items, 
 		rt_free(box->items);
 		box->items = RT_NULL;
 	}
-	//支持增加/删除项目,动态空间
+	/* support add/del/append, dynamic memory */
 	box->items = (rtgui_listbox_item_t*) rt_malloc(sizeof(rtgui_listbox_item_t)*count);
 	if(box->items == RT_NULL) return;
 
 	for(i=0;i<count;i++)
 	{
 		box->items[i].name = rt_strdup(items[i].name);
-		box->items[i].image = items[i].image;	
+		box->items[i].image = items[i].image;
+#ifdef LB_USING_MULTI_SEL
+		box->items[i].ext_flag = 0;
+#endif	
 	}
 
 	box->item_count = count;
@@ -140,7 +146,7 @@ void rtgui_listbox_set_items(rtgui_listbox_t* box, rtgui_listbox_item_t* items, 
 
 	box->item_per_page = rtgui_rect_height(rect) / (box->item_size+2);
 	
-	if(box->ispopup)//弹出式下拉列表,例如点击combo控件之后
+	if(box->ispopup)/* created by popup */
 	{
 		if(box->item_count < 5)
 			box->item_per_page = count;	
@@ -150,9 +156,9 @@ void rtgui_listbox_set_items(rtgui_listbox_t* box, rtgui_listbox_item_t* items, 
 		h = 2+(box->item_size+2)*box->item_per_page;
 		rect.y2 = rect.y1+h;
 		rtgui_widget_rect_to_device(box,&rect);
-		rtgui_widget_set_rect(box,&rect);//更新box的大小
+		rtgui_widget_set_rect(box,&rect);/* update listbox extent */
 
-		if(box->sbar != RT_NULL)    //更新sbar的extent
+		if(box->sbar != RT_NULL) /* update scrollbar extent */
 		{	
 			rtgui_widget_get_rect(box->sbar,&rect);
 			rect.y2 = rect.y1+h-RTGUI_WIDGET_BORDER(box)*2;
@@ -161,7 +167,7 @@ void rtgui_listbox_set_items(rtgui_listbox_t* box, rtgui_listbox_item_t* items, 
 		}	
 	}
 	
-	if(box->sbar != RT_NULL)//更新sbar的参数
+	if(box->sbar != RT_NULL)/* update scrollbar value */
 	{	
 		if(box->item_count > box->item_per_page)
 		{
@@ -185,7 +191,10 @@ void rtgui_listbox_destroy(rtgui_listbox_t* box)
 	rtgui_widget_destroy(box);
 }
 
-//绘制ListBox界面,绘制所有行
+static const unsigned char lb_ext_flag[]=
+{0x00,0x10,0x00,0x30,0x00,0x70,0x80,0xE0,0xC1,0xC0,0xE3,0x80,0x77,0x00,0x3E,0x00,0x1C,0x00,0x08,0x00};
+
+/* draw listbox all item */
 void rtgui_listbox_ondraw(rtgui_listbox_t* box)
 {
 	rtgui_rect_t rect, item_rect, image_rect;
@@ -201,14 +210,14 @@ void rtgui_listbox_ondraw(rtgui_listbox_t* box)
 
 	rtgui_widget_get_rect(box, &rect);
 
-	//绘制边框
+	/* draw listbox border */
 	rtgui_dc_draw_border(dc, &rect,RTGUI_WIDGET_BORDER_STYLE(box));
 	rtgui_rect_inflate(&rect,-RTGUI_WIDGET_BORDER(box));
 	RTGUI_DC_BC(dc) = white;
 	rtgui_dc_fill_rect(dc, &rect); 
 	rtgui_rect_inflate(&rect,RTGUI_WIDGET_BORDER(box));
-	
-	if(box->items==RT_NULL)return;//没有项目,则不再绘制内容
+
+	if(box->items==RT_NULL)return;/* not exist items. */
 
 	if(box->sbar && !RTGUI_WIDGET_IS_HIDE(box->sbar))
 	{	
@@ -237,7 +246,7 @@ void rtgui_listbox_ondraw(rtgui_listbox_t* box)
 				RTGUI_DC_BC(dc) = selected_color;
 				RTGUI_DC_FC(dc) = white;
 				rtgui_dc_fill_rect(dc, &item_rect);
-				rtgui_dc_draw_focus_rect(dc, &item_rect); //绘制焦点框
+				rtgui_dc_draw_focus_rect(dc, &item_rect);
 			}
 			else
 			{
@@ -270,7 +279,18 @@ void rtgui_listbox_ondraw(rtgui_listbox_t* box)
 			RTGUI_DC_FC(dc) = black;
 			rtgui_dc_draw_text(dc, item->name, &item_rect);
 		}
-
+#ifdef LB_USING_MULTI_SEL
+		if(box->multi_sel && item->ext_flag)
+		{
+			rtgui_rect_t tmprect = rect;
+			tmprect.x2 -= RTGUI_WIDGET_DEFAULT_MARGIN;
+			tmprect.x2 -= RTGUI_WIDGET_BORDER(box);
+			tmprect.x1 = tmprect.x2 - 12;
+			tmprect.y1 = item_rect.y1;
+			tmprect.y2 = item_rect.y2;
+			rtgui_dc_draw_word(dc, tmprect.x1, tmprect.y1+6, 10, lb_ext_flag);
+		}
+#endif
         if(item->image != RT_NULL)
             item_rect.x1 -= (item->image->w + 2);
 		item_rect.x1 -= RTGUI_WIDGET_DEFAULT_MARGIN;
@@ -288,7 +308,7 @@ void rtgui_listbox_ondraw(rtgui_listbox_t* box)
 	rtgui_dc_end_drawing(dc);
 }
 
-//更新ListBox界面,只处理新旧焦点行
+/* update listbox new/old focus item */
 void rtgui_listbox_update(rtgui_listbox_t* box)
 {
 	const rtgui_listbox_item_t* item;
@@ -310,10 +330,10 @@ void rtgui_listbox_update(rtgui_listbox_t* box)
 		rect.x2 -= rtgui_rect_width(box->sbar->parent.extent);
 	}
 
-	if((box->old_aloc >= box->frist_aloc) && /* 在之后某页中 */
-	   (box->old_aloc < box->frist_aloc+box->item_per_page) && /* 在之前某页中 */
-	   (box->old_aloc != box->now_aloc)) /* 位置没有变化,不需要刷旧行 */
-	{//这些条件,可以最大限度的减少绘图闪烁现象
+	if((box->old_aloc >= box->frist_aloc) && /* int front some page */
+	   (box->old_aloc < box->frist_aloc+box->item_per_page) && /* int later some page */
+	   (box->old_aloc != box->now_aloc)) /* change location */
+	{/* these condition dispell blinked when drawed */
 		item_rect = rect;
 		/* get old item's rect */
 		item_rect.x1 += RTGUI_WIDGET_BORDER(box); 
@@ -341,6 +361,18 @@ void rtgui_listbox_update(rtgui_listbox_t* box)
 			item_rect.x1 += item->image->w + 2;
 		}
 		rtgui_dc_draw_text(dc, item->name, &item_rect);
+#ifdef LB_USING_MULTI_SEL
+		if(box->multi_sel && item->ext_flag)
+		{
+			rtgui_rect_t tmprect = rect;
+			tmprect.x2 -= RTGUI_WIDGET_BORDER(box);
+			tmprect.x2 -= RTGUI_WIDGET_DEFAULT_MARGIN;
+			tmprect.x1 = tmprect.x2 - 12;
+			tmprect.y1 = item_rect.y1;
+			tmprect.y2 = item_rect.y2;
+			rtgui_dc_draw_word(dc, tmprect.x1, tmprect.y1+6, 10, lb_ext_flag);
+		}
+#endif
 	}
 
 	/* draw now item */
@@ -358,7 +390,7 @@ void rtgui_listbox_update(rtgui_listbox_t* box)
 		RTGUI_DC_BC(dc) = selected_color;
 		RTGUI_DC_FC(dc) = white;
 		rtgui_dc_fill_rect(dc, &item_rect);
-		rtgui_dc_draw_focus_rect(dc, &item_rect); //绘制焦点框
+		rtgui_dc_draw_focus_rect(dc, &item_rect); /* draw focus rect */
 	}
 	else
 	{
@@ -390,36 +422,95 @@ void rtgui_listbox_update(rtgui_listbox_t* box)
 		RTGUI_DC_FC(dc) = black;
 		rtgui_dc_draw_text(dc, item->name, &item_rect);
 	}
-	box->old_aloc = box->now_aloc;
+#ifdef LB_USING_MULTI_SEL
+	if(box->multi_sel && item->ext_flag)
+	{
+		rtgui_rect_t tmprect = rect;
+		tmprect.x2 -= RTGUI_WIDGET_BORDER(box);
+		tmprect.x2 -= RTGUI_WIDGET_DEFAULT_MARGIN;
+		tmprect.x1 = tmprect.x2 - 12;
+		tmprect.y1 = item_rect.y1;
+		tmprect.y2 = item_rect.y2;
+		rtgui_dc_draw_word(dc, tmprect.x1, tmprect.y1+6, 10, lb_ext_flag);
+	}
+#endif
 
 	rtgui_dc_end_drawing(dc);
 }
 
+static void rtgui_listbox_onmouse(rtgui_listbox_t* box, rtgui_event_mouse_t* emouse)
+{
+	rtgui_rect_t rect;
+
+	/* get physical extent information */
+	rtgui_widget_get_rect(box, &rect);
+	if(box->sbar && !RTGUI_WIDGET_IS_HIDE(box->sbar))
+		rect.x2 -= rtgui_rect_width(box->sbar->parent.extent);
+
+	if((rtgui_region_contains_point(&RTGUI_WIDGET_CLIP(box), emouse->x, emouse->y,&rect) == RT_EOK) 
+		&& (box->item_count > 0))
+	{
+		rt_uint16_t i;
+		i = (emouse->y - rect.y1) / (2 + box->item_size);
+		
+		/* set focus */
+		rtgui_widget_focus(box);
+		
+		if((i < box->item_count) && (i < box->item_per_page))
+		{
+			if(emouse->button & RTGUI_MOUSE_BUTTON_DOWN)
+			{
+				box->old_aloc = box->now_aloc;
+				/* set selected item */
+				box->now_aloc = box->frist_aloc + i;
+				
+				if(box->on_item != RT_NULL)
+				{	
+					box->on_item(box, RT_NULL);
+				}
+				
+				/* down event */
+				rtgui_listbox_update(box);
+			}
+			else if(emouse->button & RTGUI_MOUSE_BUTTON_UP)
+			{
+				rtgui_listbox_update(box);
+
+				if(box->ispopup && !RTGUI_WIDGET_IS_HIDE(box))
+				{
+					RTGUI_WIDGET_HIDE(box);
+					box->frist_aloc=0;
+					box->now_aloc = 0;
+					
+					rtgui_widget_update_clip(RTGUI_WIDGET_PARENT(box));
+					rtgui_widget_update(RTGUI_WIDGET_PARENT(box));
+					return;	
+				}
+			}
+			if(box->sbar && !RTGUI_WIDGET_IS_HIDE(box))
+			{
+				if(!RTGUI_WIDGET_IS_HIDE(box->sbar))
+					rtgui_scrollbar_set_value(box->sbar,box->frist_aloc);
+			}
+		}
+	}
+}
+
 rt_bool_t rtgui_listbox_event_handler(PVOID wdt, rtgui_event_t* event)
 {
+	rtgui_widget_t *widget = wdt;
 	rtgui_listbox_t* box = (rtgui_listbox_t*)wdt;
 	
 	RT_ASSERT(box != RT_NULL);
-
+	
 	switch (event->type)
 	{
 		case RTGUI_EVENT_PAINT:
 		{
-			rtgui_dc_t *dc;
-
-			dc = rtgui_dc_begin_drawing(box);
-			if(dc == RT_NULL)return RT_FALSE;
-
-			if(!RTGUI_WIDGET_IS_FOCUSED(box))
-			{
-				rtgui_rect_t rect;
-				rtgui_widget_get_rect(box, &rect);
-				rtgui_dc_fill_rect(dc,&rect);
-			}	
-
-			rtgui_dc_end_drawing(dc);
-
-			rtgui_listbox_ondraw(box);
+			if(widget->on_draw)
+				widget->on_draw(widget, RT_NULL);
+			else
+				rtgui_listbox_ondraw(box);
 			return RT_FALSE;
 		}
 	    case RTGUI_EVENT_RESIZE:
@@ -434,64 +525,13 @@ rt_bool_t rtgui_listbox_event_handler(PVOID wdt, rtgui_event_t* event)
 	        break;
 	
 		case RTGUI_EVENT_MOUSE_BUTTON: 
+			if(widget->on_mouseclick != RT_NULL) 
 			{
-				rtgui_rect_t rect;
-				rtgui_event_mouse_t* emouse;
-	
-				emouse = (rtgui_event_mouse_t*)event;
-	
-				/* get physical extent information */
-				rtgui_widget_get_rect(box, &rect);
-				if(box->sbar && !RTGUI_WIDGET_IS_HIDE(box->sbar))
-					rect.x2 -= rtgui_rect_width(box->sbar->parent.extent);
-	
-				if((rtgui_region_contains_point(&RTGUI_WIDGET_CLIP(box), emouse->x, emouse->y,&rect) == RT_EOK) && (box->item_count > 0))
-				{
-					rt_uint16_t i;
-					i = (emouse->y - rect.y1) / (2 + box->item_size);
-	
-					/* set focus */
-					rtgui_widget_focus(box);
-	
-					if((i < box->item_count) && (i < box->item_per_page))
-					{
-						if(emouse->button & RTGUI_MOUSE_BUTTON_DOWN)
-						{
-							box->old_aloc = box->now_aloc;
-							/* set selected item */
-							box->now_aloc = box->frist_aloc + i;
-
-							if(box->on_item != RT_NULL)
-							{	
-								box->on_item(box, RT_NULL);
-							}
-
-							/* down event */
-							rtgui_listbox_update(box);
-						}
-						else if(emouse->button & RTGUI_MOUSE_BUTTON_UP)
-						{
-							rtgui_listbox_update(box);
-
-							if(box->ispopup && !RTGUI_WIDGET_IS_HIDE(box))
-							{
-								RTGUI_WIDGET_HIDE(box);
-								box->frist_aloc=0;
-								box->now_aloc = 0;
-
-								rtgui_widget_update_clip(RTGUI_WIDGET_PARENT(box));
-								rtgui_widget_update(RTGUI_WIDGET_PARENT(box));
-								return RT_TRUE;	
-							}
-						}
-						if(box->sbar && !RTGUI_WIDGET_IS_HIDE(box))
-						{
-							if(!RTGUI_WIDGET_IS_HIDE(box->sbar))
-								rtgui_scrollbar_set_value(box->sbar,box->frist_aloc);
-						}
-					}
-				}
-				
+				widget->on_mouseclick(widget, event);
+			}
+			else
+			{
+				rtgui_listbox_onmouse(box, (rtgui_event_mouse_t*)event);
 			}
 			break;
 
@@ -499,7 +539,7 @@ rt_bool_t rtgui_listbox_event_handler(PVOID wdt, rtgui_event_t* event)
         {
             rtgui_event_kbd_t* ekbd = (rtgui_event_kbd_t*)event;
             if((RTGUI_KBD_IS_DOWN(ekbd)) && (box->item_count > 0))
-            {
+            {	
 				switch (ekbd->key)
                 {
 	                case RTGUIK_UP:
@@ -523,9 +563,9 @@ rt_bool_t rtgui_listbox_event_handler(PVOID wdt, rtgui_event_t* event)
 									rtgui_scrollbar_set_value(box->sbar,box->frist_aloc);
 							}
 
-							if(box->on_item != RT_NULL)
+							if(box->updown != RT_NULL)
 							{
-								box->on_item(box, RT_NULL);
+								box->updown(box, RT_NULL);
 							}
 						}
 						break;
@@ -534,7 +574,7 @@ rt_bool_t rtgui_listbox_event_handler(PVOID wdt, rtgui_event_t* event)
 						if(box->now_aloc < box->item_count - 1)
 						{
 							box->old_aloc = box->now_aloc;
-							box->now_aloc ++;
+							box->now_aloc ++;	
 							if(box->now_aloc >= box->frist_aloc+box->item_per_page)
 							{
 								box->frist_aloc++;
@@ -549,20 +589,28 @@ rt_bool_t rtgui_listbox_event_handler(PVOID wdt, rtgui_event_t* event)
 								if(!RTGUI_WIDGET_IS_HIDE(box->sbar))
 									rtgui_scrollbar_set_value(box->sbar,box->frist_aloc);
 							}
-
-							if(box->on_item != RT_NULL)
+							
+							if(box->updown != RT_NULL)
 							{
-								box->on_item(box, RT_NULL);
+								box->updown(box, RT_NULL);
 							}
 						}
 						break;
 	
 					case RTGUIK_RETURN:
-	                    if(box->on_item != RT_NULL)
+						if(box->on_item != RT_NULL)
 						{
 							box->on_item(box, RT_NULL);
 						}
-						
+#ifdef LB_USING_MULTI_SEL						
+						if(box->multi_sel)
+						{
+							rtgui_listbox_item_t *item;
+							item = &(box->items[box->now_aloc]);
+							item->ext_flag = 1;
+							rtgui_widget_update(RTGUI_WIDGET_PARENT(box));
+						}
+#endif
 						if(box->ispopup && !RTGUI_WIDGET_IS_HIDE(box))
 						{
 							RTGUI_WIDGET_HIDE(box);
@@ -571,6 +619,17 @@ rt_bool_t rtgui_listbox_event_handler(PVOID wdt, rtgui_event_t* event)
 							rtgui_widget_update_clip(RTGUI_WIDGET_PARENT(box));
 							rtgui_widget_update(RTGUI_WIDGET_PARENT(box));
 						}
+						break;
+					case RTGUIK_BACKSPACE:
+#ifdef LB_USING_MULTI_SEL						
+						if(box->multi_sel)
+						{
+							rtgui_listbox_item_t *item;
+							item = &(box->items[box->now_aloc]);
+							item->ext_flag = 0;
+							rtgui_widget_update(RTGUI_WIDGET_PARENT(box));
+						}
+#endif
 						break;
 	
 	                default:
@@ -592,6 +651,13 @@ void rtgui_listbox_set_onitem(rtgui_listbox_t* box, rtgui_event_handler_ptr func
 	if(box == RT_NULL) return;
 
 	box->on_item = func;
+}
+
+void rtgui_listbox_set_updown(rtgui_listbox_t* box, rtgui_event_handler_ptr func)
+{
+	if(box == RT_NULL) return;
+
+	box->updown = func;
 }
 
 void rtgui_listbox_delete_item(rtgui_listbox_t* box, rt_uint32_t item_num)
@@ -750,11 +816,9 @@ static rt_bool_t rtgui_listbox_unfocus(PVOID wdt, rtgui_event_t* event)
 		box->frist_aloc=0;
 		box->now_aloc = 0;
 		
-		//rtgui_widget_update_clip(RTGUI_WIDGET_PARENT(box));
-		//rtgui_widget_update_clip_pirate(RTGUI_WIDGET_PARENT(box),box);
 		win = rtgui_win_get_win_by_widget(box);
 		if(win != RT_NULL)
-		{/* it in a window box */
+		{/* it in a window box */ 
 			if(rtgui_rect_is_intersect(&(RTGUI_WIDGET_EXTENT(win)), 
 				&(RTGUI_WIDGET_EXTENT(box))) == RT_EOK)
 			{

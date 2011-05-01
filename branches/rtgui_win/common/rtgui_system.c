@@ -354,7 +354,7 @@ void rtgui_thread_set_widget(PVOID widget)
 	/* get thread */
 	thread = (rtgui_thread_t*) (rt_thread_self()->user_data);
 
-	if(thread != RT_NULL) thread->widget = widget;//?可能多个win公用一个thread!!
+	if(thread != RT_NULL) thread->widget = widget;
 }
 
 PVOID rtgui_thread_get_widget(void)

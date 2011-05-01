@@ -21,7 +21,7 @@
 #define RT_INT16_MAX		32767
 #define RT_INT16_MIN		(-RT_INT16_MAX-1)
 
-#define SELECTED_HEIGHT			20	//已选择行的高度
+#define SELECTED_HEIGHT			20
 
 #define RT_COUNT(array)	sizeof(array)/sizeof(array[0])
 

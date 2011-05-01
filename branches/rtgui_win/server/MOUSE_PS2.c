@@ -68,7 +68,7 @@ static void _EvaPacket(void)
 	_Buttons = _abInBuffer[0] & 0x03;
 
 	a = _abInBuffer[1];
-	//²âÊÔXÒÆ¶¯·ûºÅ
+
 	if(_abInBuffer[0] & 0x10) 
 	{
 		a = -a;
@@ -80,7 +80,7 @@ static void _EvaPacket(void)
 	}
 
 	a = _abInBuffer[2];
-	//²âÊÔYÒÆ¶¯·ûºÅ
+
 	if(_abInBuffer[0] & 0x20) 
 	{
 		a = -a;

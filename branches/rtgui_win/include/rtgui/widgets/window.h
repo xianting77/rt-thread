@@ -17,6 +17,7 @@
 
 #include <rtgui/rtgui.h>
 #include <rtgui/widgets/container.h>
+#include <rtgui/image.h>
 
 /** Gets the type of a win */
 #define RTGUI_WIN_TYPE       (rtgui_win_type_get())
@@ -76,6 +77,7 @@ struct rtgui_win
 	/* inherit from top */
 	rtgui_container_t 	parent;
 	char*               title;			/* window title */
+	rtgui_image_t*		image;			/* title bar icon */
 	rtgui_win_level_t	level;          /* window level */
 	PVOID               modal_widget;   /* parent top */
 	rtgui_list_t        list;           /* window list */

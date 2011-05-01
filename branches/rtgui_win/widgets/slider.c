@@ -49,8 +49,7 @@ static void rtgui_slider_onmouse(rtgui_slider_t* slider, rtgui_event_mouse_t* ev
 	RT_ASSERT(slider != RT_NULL);
 	RT_ASSERT(event  != RT_NULL);
 
-	if(event->button & RTGUI_MOUSE_BUTTON_DOWN &&
-		event->button & RTGUI_MOUSE_BUTTON_LEFT)
+	if(event->button & RTGUI_MOUSE_BUTTON_DOWN && event->button & RTGUI_MOUSE_BUTTON_LEFT)
 	{
 		int sel;
 		int range = slider->max - slider->min;
@@ -121,35 +120,32 @@ rt_bool_t rtgui_slider_event_handler(PVOID wdt, rtgui_event_t* event)
 	switch (event->type)
 	{
 	case RTGUI_EVENT_PAINT:
-		if(widget->on_draw != RT_NULL) widget->on_draw(widget, event);
+		if(widget->on_draw != RT_NULL) 
+			widget->on_draw(widget, event);
 		else
-		{
 			rtgui_theme_draw_slider(slider);
-		}
 
 		break;
 
 	case RTGUI_EVENT_KBD:
-		if(widget->on_key != RT_NULL) widget->on_key(widget, event);
+		if(widget->on_key != RT_NULL) 
+			widget->on_key(widget, event);
 		else
-		{
 			rtgui_slider_onkey(slider, (rtgui_event_kbd_t *)event);
-		}
 		break;
 
 	case RTGUI_EVENT_MOUSE_BUTTON:
-		if(widget->on_mouseclick != RT_NULL) widget->on_mouseclick(widget, event);
+		if(widget->on_mouseclick != RT_NULL) 
+			widget->on_mouseclick(widget, event);
 		else
-		{
 			rtgui_slider_onmouse(slider, (rtgui_event_mouse_t*)event);
-		}
 		break;
 	}
 
 	return RT_FALSE;
 }
 
-//创建一个滑动块控件
+/* create a slider */
 rtgui_slider_t* rtgui_slider_create(PVOID parent, rt_size_t min, rt_size_t max, int left, int top, int w, int h, int orient)
 {
     rtgui_slider_t* slider;
@@ -167,7 +163,7 @@ rtgui_slider_t* rtgui_slider_create(PVOID parent, rt_size_t min, rt_size_t max, 
 		slider->value = min;
 
 		slider->ticks = 10;
-		slider->thumb_width = 6;//滑动尺宽度
+		slider->thumb_width = 6;/* thumb size */
 
 		rtgui_slider_set_orientation(slider, orient);
 
@@ -212,7 +208,7 @@ void rtgui_slider_set_value(rtgui_slider_t* slider, rt_size_t value)
 	}
 }
 
-//设置目标方向
+/* set slider draw orientation */
 void rtgui_slider_set_orientation(rtgui_slider_t* slider, int orient)
 {
 	RT_ASSERT(slider != RT_NULL);

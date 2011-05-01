@@ -25,7 +25,7 @@ typedef struct rtgui_image rtgui_image_t;
 
 struct rtgui_image_engine
 {
-	const char* name; //引擎名称,图像类型
+	const char* name; 
 	rtgui_list_t list;
 
 	/* image engine function  */

@@ -573,7 +573,7 @@ void rtgui_scrollbar_set_orientation(rtgui_scrollbar_t* bar, int orient)
 	bar->orient = orient;
 }
 
-//取得活动条的可活动区域的长度
+/* get active area length */
 rt_uint32_t get_sbar_active_len(rtgui_scrollbar_t *bar)
 {
 	rtgui_rect_t rect;
@@ -593,11 +593,7 @@ void rtgui_scrollbar_set_thumbbar_len(rtgui_scrollbar_t* bar)
 
 	RT_ASSERT(bar != RT_NULL);
 
-	//Make sure called rtgui_scrollbar_set_range(),before you use under code.
-	//计算活动块尺寸的方法:
-	//用一页项目条数/总计数条数的比值,来确定活动块在可活动区域中的比例,
-	//当函数很多是,使用活动块宽的的一半作为最小尺寸.
-
+	/* Make sure called rtgui_scrollbar_set_range(),before you use under code. */
 	size = bar->page_step;
 	size /= bar->count+bar->page_step;
 	size *= get_sbar_active_len(bar);
@@ -610,8 +606,10 @@ void rtgui_scrollbar_set_thumbbar_len(rtgui_scrollbar_t* bar)
 	bar->thumb_len = len;
 }
 
-//下面三个函数的调用顺序:
-//1.SetLineStep();2.SetPageStep();3.SetRange();
+/* 
+ * please use them with below step:
+ * 1.SetLineStep();2.SetPageStep();3.SetRange(); 
+ */
 
 void rtgui_scrollbar_set_line_step(rtgui_scrollbar_t* bar, int step)
 {
@@ -641,7 +639,7 @@ void rtgui_scrollbar_set_range(rtgui_scrollbar_t* bar, int count)
 		RTGUI_WIDGET_ENABLE(bar);
 	}
 
-	//活动块计数个数 = 总个数 - 一屏个数
+	/* thumb step count = item_count-item_per_page */
 	bar->count = (rt_int16_t)(count-bar->page_step);
 	rtgui_scrollbar_set_thumbbar_len(bar);
 }

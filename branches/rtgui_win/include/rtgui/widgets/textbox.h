@@ -28,13 +28,13 @@
 #define RTGUI_TEXTBOX_DEFAULT_HEIGHT		20
 
 #define RTGUI_TEXTBOX_NONE			0x00
-#define RTGUI_TEXTBOX_MULTI			0x01 //多行
-#define RTGUI_TEXTBOX_MASK			0x02 //密码
-#define RTGUI_TEXTBOX_DIGIT  		0x04 //输入限制为数字
+#define RTGUI_TEXTBOX_MULTI			0x01 /* multiline */
+#define RTGUI_TEXTBOX_MASK			0x02 /* ciphertext */
+#define RTGUI_TEXTBOX_DIGIT  		0x04 /* digit */
 #define RTGUI_TEXTBOX_CARET_SHOW	0x10
 #define RTGUI_TEXTBOX_CARET_STAT	0x20
 
-#define RTGUI_TEXTBOX_LINE_MAX		128  //行缓存的长度
+#define RTGUI_TEXTBOX_LINE_MAX		128  /* text line cache */
 
 struct rtgui_textbox
 {
@@ -43,7 +43,7 @@ struct rtgui_textbox
 
 	/* text box flag */
 	rt_uint32_t flag;
-	rt_uint32_t isedit;//是否可编辑
+	rt_uint32_t isedit;
 
 	/* current line and position */
 	rt_uint16_t line, line_begin, position, line_length;

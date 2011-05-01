@@ -20,10 +20,15 @@
 #include <rtgui/color.h>
 #include <rtgui/image.h>
 
+#define LB_USING_MULTI_SEL
+
 struct rtgui_listbox_item
 {
     char *name;
 	rtgui_image_t *image;
+#ifdef LB_USING_MULTI_SEL
+	rt_bool_t	ext_flag;
+#endif
 };
 typedef struct rtgui_listbox_item	rtgui_listbox_item_t;
 /** Gets the type of a list box */
@@ -49,10 +54,14 @@ struct rtgui_listbox
 	rt_bool_t			ispopup;	    /* 是弹出类型列表 */
 	PVOID 				widgetlnk;		/* 链接的控件 */
 	rtgui_scrollbar_t  	*sbar;
+#ifdef LB_USING_MULTI_SEL
+	rt_bool_t			multi_sel;		/* multi selected flag */
+#endif
     rtgui_listbox_item_t *items;	    /* items array */
 	
 	/* item event handler */
 	rt_bool_t (*on_item)(PVOID wdt, rtgui_event_t* event);
+	rt_bool_t (*updown)(PVOID wdt, rtgui_event_t* event);
 
 	rt_uint32_t (*get_count)(rtgui_listbox_t* box);
 	void (*add_item)(rtgui_listbox_t* box, rtgui_listbox_item_t* item);
@@ -67,6 +76,7 @@ void rtgui_listbox_destroy(rtgui_listbox_t* box);
 void rtgui_listbox_update(rtgui_listbox_t* box);
 rt_bool_t rtgui_listbox_event_handler(PVOID wdt, rtgui_event_t* event);
 void rtgui_listbox_set_onitem(rtgui_listbox_t* box, rtgui_event_handler_ptr func);
+void rtgui_listbox_set_updown(rtgui_listbox_t* box, rtgui_event_handler_ptr func);
 void rtgui_listbox_set_items(rtgui_listbox_t* box, rtgui_listbox_item_t* items, rt_uint32_t count);
 void rtgui_listbox_update_aloc(rtgui_listbox_t* box, rt_uint16_t aloc);
 void rtgui_listbox_delete_item(rtgui_listbox_t* box, rt_uint32_t item_num);

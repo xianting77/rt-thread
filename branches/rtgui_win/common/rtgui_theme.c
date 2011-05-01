@@ -152,11 +152,11 @@ void rtgui_theme_draw_win_minbox(rtgui_win_t *win)
 	rtgui_dc_end_drawing(dc);
 }
 
-int TABLE_VARY_COLOR[24][3]={
+/* int TABLE_VARY_COLOR[24][3]={
 {22,66,254},{22,65,251},{21,63,248},{20,61,245},{19,60,242},{19,58,239},{18,56,235},{17,55,233},
 {17,53,230},{16,51,226},{15,50,224},{14,48,220},{14,47,217},{13,45,215},{12,43,211},{11,42,206},
 {11,40,206},{10,38,202},{9, 37,199},{8, 35,197},{7, 34,195},{6, 33,193},{5, 31,191},{4, 29,197}
-};
+}; */
 
 void rtgui_theme_draw_win_title(rtgui_win_t *win)
 {
@@ -173,17 +173,15 @@ void rtgui_theme_draw_win_title(rtgui_win_t *win)
 	{
 		rt_uint32_t i,j;
 		rtgui_rect_t rect; 
-		/* float r, g, b, delta; */
-		rtgui_color_t color;
 
 		rtgui_win_get_title_rect(win, &rect);
 
-		if((win->status & RTGUI_WIN_STATUS_ACTIVATE))
+		if(rtgui_win_is_activated(win))
 		{
-			/* color = RTGUI_RGB(10, 36, 106); */
+			RTGUI_DC_FC(dc) = RTGUI_RGB(30, 10,250);
 			for(i = rect.y1,j=0; i < rect.y2; i ++,j++)
 			{
-				RTGUI_DC_FC(dc) = RTGUI_RGB(TABLE_VARY_COLOR[j][0],TABLE_VARY_COLOR[j][1],TABLE_VARY_COLOR[j][2]);
+				/* RTGUI_DC_FC(dc) = RTGUI_RGB(TABLE_VARY_COLOR[j][0],TABLE_VARY_COLOR[j][1],TABLE_VARY_COLOR[j][2]); */
 				rtgui_dc_draw_hline(dc,rect.x1, rect.x2, i);
 			}
 		}
@@ -198,13 +196,19 @@ void rtgui_theme_draw_win_title(rtgui_win_t *win)
 		}
 		
 		if (win->status & RTGUI_WIN_STATUS_ACTIVATE)
-			color = white;
+			RTGUI_DC_FC(dc) = white;
 		else
-			color = RTGUI_RGB(212, 208, 200);
+			RTGUI_DC_FC(dc) = RTGUI_RGB(212, 208, 200);
 
 		rect.x1 += 4;
 		rect.y1 += 2; rect.y2 = rect.y1 + RTGUI_WIN_CLOSEBOX_HEIGHT;
-		RTGUI_DC_FC(dc) = color;
+
+		if(win->image != RT_NULL)
+		{
+			rtgui_image_paste(win->image, dc, &rect, white);
+			rect.x1 += win->image->w+4;
+		}
+		
 		RTGUI_DC_TEXTALIGN(dc) = RTGUI_ALIGN_LEFT;
 		rtgui_dc_draw_text(dc,win->title, &rect);
 
@@ -1261,7 +1265,7 @@ void rtgui_theme_draw_panel(rtgui_panel_t *panel)
 	rtgui_widget_get_rect(panel, &rect);
 
 	if(panel->image == RT_NULL)
-	{//≤ª π”√±≥æ∞Õº∆¨	
+	{	
 		/* begin drawing */
 		dc = rtgui_dc_begin_drawing(panel);
 		if(dc == RT_NULL)return;

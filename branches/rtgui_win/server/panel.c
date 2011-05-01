@@ -21,8 +21,7 @@
 /* the global parameter */
 rtgui_panel_t *rtgui_panel = RT_NULL;
 
-//在SVN版中,下面两个变量是在topwin层定义的,
-//由于取消了topwin层,所有提出来作为全局变量
+/* gui manage toplevel window */
 rtgui_rect_t *external_clip_rect=RT_NULL;
 rt_uint32_t	external_clip_size=0;
 
@@ -89,8 +88,7 @@ rtgui_panel_t* rtgui_panel_create(int left, int top, int w, int h)
 
 void rtgui_panel_destroy(char* name)
 {
-	//Panel需要永远驻留内存中
-	//......
+	/* panel need lingering in memory forever */
 }
 
 void rtgui_panel_set(rtgui_panel_t *panel)
@@ -106,11 +104,11 @@ rtgui_panel_t* rtgui_panel_get(void)
 void rtgui_panel_show(rtgui_panel_t *panel)
 {
 	rtgui_widget_update_clip(panel);
-	rtgui_widget_update(panel);	
+	rtgui_widget_update(panel);
 }
 
 rt_bool_t rtgui_panel_ondraw(rtgui_panel_t* panel)
-{
+{	
 	rtgui_theme_draw_panel(panel);
 	return RT_TRUE;
 }
@@ -121,7 +119,7 @@ rt_bool_t rtgui_panel_event_handler(PVOID wdt,rtgui_event_t *event)
 	rtgui_panel_t *panel = (rtgui_panel_t*)wdt;
 
 	RT_ASSERT((wdt != RT_NULL) && (event != RT_NULL));
-
+	
 	switch (event->type)
 	{
 		case RTGUI_EVENT_WIN_CLOSE:
@@ -134,6 +132,7 @@ rt_bool_t rtgui_panel_event_handler(PVOID wdt,rtgui_event_t *event)
 			{
 				RTGUI_WIDGET_EVENT_CALL(win, event);
 			}
+			
 			break;
 		}
 		case RTGUI_EVENT_WIN_MOVE:
@@ -188,7 +187,7 @@ rt_bool_t rtgui_panel_event_handler(PVOID wdt,rtgui_event_t *event)
 		{
 			rtgui_event_kbd_t* kbd = (rtgui_event_kbd_t*)event;
 			rtgui_win_t* win = kbd->wid;
-
+		
 			/* check the destination window */
 			if(win != RT_NULL && RTGUI_WIDGET_EVENT_HANDLE(win) != RT_NULL)
 			{
@@ -205,7 +204,7 @@ rt_bool_t rtgui_panel_event_handler(PVOID wdt,rtgui_event_t *event)
 					}
 				}
 				else if(RTGUI_CONTAINER(panel)->focused != RT_NULL)
-				{
+				{	
 					if(RTGUI_CONTAINER(panel)->focused != widget)
 					{
 						RTGUI_WIDGET_EVENT_CALL(RTGUI_CONTAINER(panel)->focused, event);
@@ -269,9 +268,9 @@ void rtgui_panel_event_loop(rtgui_panel_t *panel)
 			else
 			{
 				result = rtgui_thread_recv(event, RTGUI_EVENT_BUFFER_SIZE);
-
+				
 				if (result == RT_EOK)
-				{
+				{	
 					/* perform event handler */
 					RTGUI_WIDGET_EVENT_CALL(panel, event);
 				}

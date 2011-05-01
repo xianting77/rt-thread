@@ -41,14 +41,13 @@ void _rtgui_textbox_constructor(rtgui_textbox_t *box)
 	/* set default text align */
 	RTGUI_WIDGET_TEXTALIGN(box) = RTGUI_ALIGN_CENTER_VERTICAL;
 	rtgui_widget_set_style(box, RTGUI_BORDER_SUNKEN);
-	/* set proper of control 创建一个周期型的控制定时器*/
+	/* set proper of control */
 	box->caret_timer = rtgui_timer_create(100, RT_TIMER_FLAG_PERIODIC,rtgui_textbox_timeout, box);
 	
-	//初始化...当前行,开始行,在当前行中的位置
 	box->line = box->line_begin = box->position = 0;
-	box->flag = RTGUI_TEXTBOX_NONE; //单行(默认)
-	box->isedit = RT_TRUE;//默认是可以编辑的
-	/* allocate default line buffer 分配默认的行缓存 */
+	box->flag = RTGUI_TEXTBOX_NONE; 
+	box->isedit = RT_TRUE;/* default textbox is edited */
+	/* allocate default line buffer */
 	box->text = RT_NULL;
 
 	rtgui_font_get_string_rect(RTGUI_WIDGET_FONT(box), "h", &rect);
@@ -85,8 +84,7 @@ rtgui_type_t *rtgui_textbox_type_get(void)
 	return textbox_type;
 }
 
-//#include <rthw.h>
-//绘制编辑块光标
+/* draw caret */
 void rtgui_textbox_draw_caret(rtgui_textbox_t* box, rt_uint16_t position)
 {
 	int x,y;
@@ -167,19 +165,19 @@ static void rtgui_textbox_onmouse(rtgui_textbox_t* box, rtgui_event_mouse_t* eve
 		rt_int32_t x;
 		if(!box->isedit)return;
 		if(box->flag & RTGUI_TEXTBOX_MULTI)
-		{//多行文本
+		{/* multiline text */
 			/* set widget focus */
 			rtgui_widget_focus(box);
 
-			//add codes at here.
-			//...
+			/*add codes at here. */
+			/* ... */
 						
 			box->position = 0;
 			box->flag |= RTGUI_TEXTBOX_CARET_SHOW;
 			rtgui_textbox_draw_caret(box,box->position);
 		}
 		else
-		{//单行文本
+		{/* single line text */
 			/* set caret position */
 			x = event->x - RTGUI_WIDGET(box)->extent.x1;
 			if(x < 0)
@@ -195,13 +193,12 @@ static void rtgui_textbox_onmouse(rtgui_textbox_t* box, rtgui_event_mouse_t* eve
 				box->position = x / box->font_width;
 			}
 
-			//改变了位置,如果上一个位置显示了编辑框光标,则清除之.
 			if(box->flag & RTGUI_TEXTBOX_CARET_SHOW)
 			{
 				rtgui_timer_stop(box->caret_timer);
 		
 				box->flag &= ~RTGUI_TEXTBOX_CARET_SHOW;
-				rtgui_textbox_draw_caret(box, posbak);//先刷新以下编辑块光标,如果是显示状态
+				rtgui_textbox_draw_caret(box, posbak);
 		
 				rtgui_timer_start(box->caret_timer);
 			}
@@ -209,7 +206,7 @@ static void rtgui_textbox_onmouse(rtgui_textbox_t* box, rtgui_event_mouse_t* eve
 			/* set widget focus */
 			rtgui_widget_focus(box);
 	
-			/* draw caret 绘制编辑块光标 */
+			/* draw caret */
 			rtgui_textbox_draw_caret(box,box->position);
 		}
 	}
@@ -227,7 +224,7 @@ static rt_bool_t rtgui_textbox_onkey(PVOID wdt, rtgui_event_t* event)
 
 	length = rt_strlen(box->text);
 	if(ekbd->key == RTGUIK_DELETE)
-	{//删除光标后面的字符
+	{/* delete latter character */
 		if(box->position == length - 1)
 		{
 			box->text[box->position] = '\0';
@@ -245,7 +242,7 @@ static rt_bool_t rtgui_textbox_onkey(PVOID wdt, rtgui_event_t* event)
 		if(box->on_change)box->on_change(box,RT_NULL);
 	}
 	else if(ekbd->key == RTGUIK_BACKSPACE)
-	{//删除光标前面的字符
+	{/* delete front character */
 		
 		if(box->position == length - 1)
 		{
@@ -270,25 +267,25 @@ static rt_bool_t rtgui_textbox_onkey(PVOID wdt, rtgui_event_t* event)
 		if(box->on_change)box->on_change(box,RT_NULL);
 	}
 	else if(ekbd->key == RTGUIK_LEFT)
-	{//光标向左移动一个字符位
+	{/* move to prev */
 		if(box->position > 0) 
 		{
 			box->position --;
 		}
 	}
 	else if(ekbd->key == RTGUIK_RIGHT)
-	{//光标向右移动一个字符位
+	{/* move to next */
 		if(box->position < length) 
 		{
 			box->position ++;
 		}
 	}
 	else if(ekbd->key == RTGUIK_HOME)
-	{//光标移动到串首
+	{/* move cursor to start */
 		box->position = 0;
 	}
 	else if(ekbd->key == RTGUIK_END)
-	{//光标移动到串尾
+	{/* move cursor to end */
 		box->position = length;
 	}
 	else if(ekbd->key == RTGUIK_RETURN)
@@ -298,29 +295,29 @@ static rt_bool_t rtgui_textbox_onkey(PVOID wdt, rtgui_event_t* event)
 			box->on_enter(box, RT_NULL);
 		}
 	}
-	else if(ekbd->key == RTGUIK_NUMLOCK)//数字键有效
+	else if(ekbd->key == RTGUIK_NUMLOCK)
 	{
 		/* change numlock state */
 	}
 	else
 	{
 		if(isprint(ekbd->key))
-		{//是可打印字符或数字
+		{/* it's may print character */
 			/* no buffer on this line */
 			if(box->flag & RTGUI_TEXTBOX_DIGIT)
-			{//输入限制为数字
+			{/* only input digit */
 				if(!isdigit(ekbd->key))
-				{//允许'.'和'-'
+				{/* exception: '.' and '-' */
 					if(ekbd->key != '.' && ekbd->key !='-')return RT_FALSE;
 					if(ekbd->key == '.' && strchr(box->text,'.'))return RT_FALSE;
 					
 					if(ekbd->key == '-')
-					{//在数字模式下,单独处理符号
+					{
 						if(length+1 > box->line_length) return RT_FALSE;
 						if(length+1 > box->dis_length) return RT_FALSE;
 						
 						if(strchr(box->text,'-'))
-						{//当前已经置为负号
+						{
 							char* c;
 							for(c = &box->text[0]; c != &box->text[length]; c++)
 								*c = *(c+1);
@@ -362,13 +359,12 @@ static rt_bool_t rtgui_textbox_onkey(PVOID wdt, rtgui_event_t* event)
 	}
 
 _exit:
-	//改变了位置,如果上一个位置显示了编辑框光标,则清除之.
 	if(box->flag & RTGUI_TEXTBOX_CARET_SHOW)
 	{
 		rtgui_timer_stop(box->caret_timer);
 
 		box->flag &= ~RTGUI_TEXTBOX_CARET_SHOW;
-		rtgui_textbox_draw_caret(box, posbak);//先刷新一下编辑块光标,如果是显示状态
+		rtgui_textbox_draw_caret(box, posbak);/* refresh it */
 
 		rtgui_timer_start(box->caret_timer);
 	}
@@ -378,7 +374,7 @@ _exit:
 	box->flag |= RTGUI_TEXTBOX_CARET_SHOW;
 	/* re-draw text box */
 	rtgui_theme_draw_textbox(box);
-	/* draw caret 绘制编辑块光标 */
+	/* draw caret */
 	rtgui_textbox_draw_caret(box,box->position);
 
 	return RT_TRUE;
@@ -390,7 +386,7 @@ static rt_bool_t rtgui_textbox_onfocus(PVOID wdt, rtgui_event_t* event)
 	rtgui_textbox_t* box = (rtgui_textbox_t*)widget;
 
 	/* set caret to show */
-	box->flag |= RTGUI_TEXTBOX_CARET_SHOW;//编辑块光标
+	box->flag |= RTGUI_TEXTBOX_CARET_SHOW;
 	/* start caret timer */
 	rtgui_timer_start(box->caret_timer);
 
@@ -424,13 +420,15 @@ rt_bool_t rtgui_textbox_event_handler(PVOID wdt, rtgui_event_t* event)
 	switch (event->type)
 	{
 		case RTGUI_EVENT_PAINT:
-			if(widget->on_draw != RT_NULL) widget->on_draw(widget, event);
+			if(widget->on_draw != RT_NULL) 
+				widget->on_draw(widget, event);
 			else 
 				rtgui_theme_draw_textbox(box);
 			break;
 	
 		case RTGUI_EVENT_MOUSE_BUTTON:
-			if(widget->on_mouseclick != RT_NULL) widget->on_mouseclick(widget, event);
+			if(widget->on_mouseclick != RT_NULL) 
+				widget->on_mouseclick(widget, event);
 			else 
 				rtgui_textbox_onmouse(box, (rtgui_event_mouse_t*)event);
 			return RT_TRUE;
@@ -438,7 +436,7 @@ rt_bool_t rtgui_textbox_event_handler(PVOID wdt, rtgui_event_t* event)
 		case RTGUI_EVENT_KBD:
 			if(widget->on_key != RT_NULL) 
 				widget->on_key(widget, event);
-
+				
 			return RT_TRUE;
 		default:
 			return rtgui_widget_event_handler(widget,event);
@@ -470,7 +468,7 @@ rtgui_textbox_t* rtgui_textbox_create(PVOID parent,const char* text,int left,int
 		rtgui_textbox_set_value(box, text);
 
 		box->flag = flag;
-		//设定可显示字符数量
+		/* set character number */
 		box->dis_length = (w-5)/rtgui_font_get_font_width(RTGUI_WIDGET_FONT(box));
 
 		rtgui_container_add_child(parent, box);
@@ -484,17 +482,17 @@ void rtgui_textbox_destroy(rtgui_textbox_t* box)
 	rtgui_widget_destroy(box);
 }
 
-//将一个文本串关联到一个textbox控件
+/* set textbox text */
 void rtgui_textbox_set_value(rtgui_textbox_t* box, const char* text)
 {
 	if(box->text != RT_NULL)
-	{//已经有内容
+	{/* yet exist something */
 		/* free the old text */
 		rt_free(box->text);
 		box->text = RT_NULL;
 	}
 
-	//原先没有内容
+	/* no something */
 	box->line_length = ((rt_strlen(text)+1)/RTGUI_TEXTBOX_LINE_MAX+1)*RTGUI_TEXTBOX_LINE_MAX;
 
 	/* allocate line buffer */
@@ -537,7 +535,7 @@ void rtgui_textbox_set_line_length(rtgui_textbox_t* box, rt_size_t length)
 	box->line_length = length;
 }
 
-//取得textbox控件的文本显示区域
+/* get textbox text area */
 void rtgui_textbox_get_edit_rect(rtgui_textbox_t *box,rtgui_rect_t *rect)
 {
 	rtgui_widget_get_rect(box, rect);

@@ -20,7 +20,7 @@ static void _rtgui_view_constructor(rtgui_view_t *view)
 	/* init view */
 	rtgui_widget_set_event_handler(view,rtgui_view_event_handler);
 
-	RTGUI_WIDGET_BORDER_STYLE(view) = RTGUI_BORDER_NONE;
+	rtgui_widget_set_style(view, RTGUI_BORDER_NONE);
 	view->title = RT_NULL;
 }
 
@@ -162,7 +162,7 @@ void rtgui_view_set_title(rtgui_view_t* view, const char *title)
 		view->title = RT_NULL;
 }
 
-//显示一个视图下指定名称的子视图
+/* raise a child view */
 void rtgui_view_show_child(PVOID wdt,const char* name)
 {
 	rtgui_list_t* node;

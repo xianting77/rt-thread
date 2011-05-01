@@ -105,21 +105,21 @@ void rtgui_server_handle_mouse_btn(rtgui_event_mouse_t* event)
 	if(win != RT_NULL)
 	{
 		rtgui_rect_t rect;
-		
+
 		event->wid = win;
 		if(rtgui_server_focus_win != win)
-		{//不是焦点窗口,则举升它
+		{/* no focused window, raise it. */
 			rtgui_topwin_raise(win);
 		}
 
 		rtgui_win_get_title_rect(win, &rect);
 		rtgui_widget_rect_to_device(win, &rect);
 		if(rtgui_rect_contains_point(&rect, event->x, event->y) == RT_EOK)
-		{//鼠标在窗口的标题栏
+		{/* in title bar */
 			rtgui_topwin_title_onmouse(win, event);
 		}
 		else
-		{//鼠标在窗口的客户区	
+		{/* in client area */
 			/*if(win->style & RTGUI_WIN_CLOSEBOX_PRESSED)
 			{
 				win->style &= ~RTGUI_WIN_CLOSEBOX_PRESSED;
@@ -131,7 +131,7 @@ void rtgui_server_handle_mouse_btn(rtgui_event_mouse_t* event)
 		return;
 	}
 
-	//发送消息到panel
+	/* send event to panel */
 	/* deactivate old window */
 	if (rtgui_server_focus_win != RT_NULL)
 	{
@@ -142,9 +142,6 @@ void rtgui_server_handle_mouse_btn(rtgui_event_mouse_t* event)
 	rtgui_thread_send(panel->tid,(rtgui_event_t*)event,sizeof(rtgui_event_mouse_t));
 }
 
-//static rt_bool_t motion_down=0;
-//static rt_int16_t downx,downy;
-//鼠标手势处理句柄
 void rtgui_server_handle_mouse_motion(rtgui_event_mouse_t* event)
 {
 	rtgui_panel_t* panel;
@@ -161,7 +158,7 @@ void rtgui_server_handle_mouse_motion(rtgui_event_mouse_t* event)
 			rtgui_thread_send(win->tid, (rtgui_event_t*)event, sizeof(rtgui_event_mouse_t));
 		}
 		else 
-		{	//发送消息到panel
+		{	/* send event to panel */
 			rtgui_thread_send(panel->tid,(rtgui_event_t*)event,sizeof(rtgui_event_mouse_t));
 		}
 	}
@@ -189,7 +186,7 @@ void rtgui_server_handle_kbd(rtgui_event_kbd_t* event)
 			rtgui_thread_send(win->tid, (rtgui_event_t*)event, sizeof(rtgui_event_kbd_t));
 		}
 		else 
-		{//发送消息到panel
+		{/* send event to panel */
 			event->wid = RT_NULL;
 			rtgui_thread_send(panel->tid,(rtgui_event_t*)event,sizeof(rtgui_event_kbd_t));
 		}

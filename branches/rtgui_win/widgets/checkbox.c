@@ -98,9 +98,10 @@ rt_bool_t rtgui_checkbox_event_handler(PVOID wdt, rtgui_event_t* event)
 			break;
 	
 		case RTGUI_EVENT_MOUSE_BUTTON:
+		{
+			rtgui_event_mouse_t* emouse = (rtgui_event_mouse_t*)event;
 			if(RTGUI_WIDGET_IS_ENABLE(widget) && !RTGUI_WIDGET_IS_HIDE(widget))
 			{
-				rtgui_event_mouse_t* emouse = (rtgui_event_mouse_t*)event;
 				if(emouse->button & RTGUI_MOUSE_BUTTON_LEFT && emouse->button & RTGUI_MOUSE_BUTTON_UP)
 				{
 					if(box->value)
@@ -130,6 +131,7 @@ rt_bool_t rtgui_checkbox_event_handler(PVOID wdt, rtgui_event_t* event)
 			}
 	
 			return RT_TRUE;
+		}
 		default:
 			break;
 	}
@@ -171,7 +173,7 @@ static rt_bool_t rtgui_checkbox_onunfocus(PVOID wdt, rtgui_event_t* event)
 	rtgui_widget_get_rect(box, &rect);
 
 	if(!RTGUI_WIDGET_IS_FOCUSED(box))
-	{//Çå³ý½¹µã¿ò
+	{/* clear focus rect */
 		rtgui_rect_t tmp_rect;
 		rtgui_color_t color;
 		rtgui_font_get_string_rect(RTGUI_WIDGET_FONT(box), rtgui_label_get_text(RTGUI_LABEL(box)), &tmp_rect);

@@ -107,10 +107,10 @@ void rtgui_font_derefer(rtgui_font_t* font);
 
 /* draw a text */
 void rtgui_font_draw(rtgui_font_t* font, rtgui_dc_t *dc, const char* text, rt_uint32_t len, rtgui_rect_t* rect);
-int  rtgui_font_get_string_width(rtgui_font_t* font, const char* text);//取得字符串的宽度
-int rtgui_font_get_font_width(rtgui_font_t* font); //取得字体的宽度
-int rtgui_font_get_font_height(rtgui_font_t* font);//取得字体的高度
-void rtgui_font_get_string_rect(rtgui_font_t* font, const char* text, rtgui_rect_t* rect);//取得字符串的矩形区域
+int  rtgui_font_get_string_width(rtgui_font_t* font, const char* text);
+int rtgui_font_get_font_width(rtgui_font_t* font); 
+int rtgui_font_get_font_height(rtgui_font_t* font);
+void rtgui_font_get_string_rect(rtgui_font_t* font, const char* text, rtgui_rect_t* rect);
 void rtgui_font_get_metrics(struct rtgui_font* font, const char* text, rtgui_rect_t* rect);
 
 #endif

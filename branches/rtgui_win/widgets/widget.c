@@ -142,7 +142,7 @@ void rtgui_widget_set_rect(PVOID wht, rtgui_rect_t* rect)
 	}
 }
 
-//设置控件的外观样式
+/* set widget draw style */
 void rtgui_widget_set_style(PVOID wdt, rt_uint32_t style)
 {
 	rtgui_widget_t *widget = (rtgui_widget_t*)wdt;
@@ -206,7 +206,7 @@ void rtgui_widget_set_event_handler(PVOID wdt, rtgui_event_handler_ptr handler)
 
 	RTGUI_WIDGET_EVENT_HANDLE(widget) = handler;
 }
-//返回绝对坐标的rect区域
+
 void rtgui_widget_get_rect(PVOID wdt, rtgui_rect_t *rect)
 {
 	rtgui_widget_t *widget = (rtgui_widget_t*)wdt;
@@ -350,7 +350,7 @@ void rtgui_widget_focus(PVOID wdt)
 	if(parent->focused == widget) return; /* it's the same focused widget */
 
 	/* unfocused the old widget */
-	if((parent->focused != RT_NULL))// && !RTGUI_IS_WIN(parent->focused))	
+	if(parent->focused != RT_NULL && !RTGUI_WIDGET_IS_HIDE(parent->focused))	
 		rtgui_widget_unfocus(parent->focused);
 
 	/* set widget as focused widget in parent link */
@@ -393,6 +393,14 @@ void rtgui_widget_unfocus(PVOID wdt)
 			rtgui_widget_unfocus(child);
 		}
 	}
+}
+
+rt_bool_t rtgui_widget_contains_point(PVOID wdt, int x, int y)
+{
+	rtgui_widget_t *widget = wdt;
+	if(rtgui_rect_contains_point(&(widget->extent), x, y) == RT_EOK)
+		return RT_TRUE;
+	return RT_FALSE;
 }
 
 void rtgui_widget_point_to_device(PVOID wdt, rtgui_point_t* point)
@@ -516,8 +524,7 @@ void rtgui_widget_update_clip(PVOID wdt)
 	/* if there is no parent, do not update clip (please use toplevel widget API) */
 	if(parent == RT_NULL) 
 	{	
-		rtgui_panel_t *panel = rtgui_panel_get();
-		rtgui_panel_update_clip(panel);
+		rtgui_panel_update_clip(widget);
 		return;
 	}
 
@@ -634,7 +641,7 @@ void rtgui_widget_update_clip_pirate(PVOID wdt,PVOID topwdt)
 void rtgui_widget_show(PVOID wdt)
 {
 	/* there is no parent or the parent is hide, no show at all */
-	if(RTGUI_WIDGET_PARENT(wdt) == RT_NULL ||RTGUI_WIDGET_IS_HIDE(RTGUI_WIDGET_PARENT(wdt))) return;
+	if(RTGUI_WIDGET_PARENT(wdt) == RT_NULL || RTGUI_WIDGET_IS_HIDE(RTGUI_WIDGET_PARENT(wdt))) return;
 
 	/* update the clip info of widget */
 	RTGUI_WIDGET_UNHIDE(wdt);
@@ -661,14 +668,14 @@ void rtgui_widget_hide(PVOID wdt)
 		{
 			parent = parent->parent;
 		}
-
+		
 		/* union widget rect */
-		rtgui_region_union_rect(&(widget->parent->clip), &(widget->parent->clip), &rect);
+		rtgui_region_union_rect(&(parent->clip), &(parent->clip), &rect);
 
 		/* subtract the external rect */
 		for (index = 0; index < external_clip_size; index ++)
 		{
-			rtgui_region_subtract_rect(&(widget->parent->clip), &(widget->parent->clip),
+			rtgui_region_subtract_rect(&(parent->clip), &(parent->clip),
 				&(external_clip_rect[index]));
 		}
 	}

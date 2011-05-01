@@ -304,7 +304,7 @@ static rt_bool_t rtgui_radiobox_unfocus(PVOID wdt, rtgui_event_t* event)
 	item_rect.x2 = item_rect.x1 + len;
 	
 	if(!RTGUI_WIDGET_IS_FOCUSED(rbox))
-	{//Çå³ý½¹µã¿ò
+	{/* clear fouce rect */
 		rtgui_color_t color;
 		color = RTGUI_DC_FC(dc);
 		RTGUI_DC_FC(dc) = default_background;
