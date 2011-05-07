@@ -4,11 +4,11 @@
 #include <rtgui/rtgui.h>
 #include <rtgui/widgets/widget.h>
 
-/** Gets the type of a button */
+/** Gets the type of a propel */
 #define RTGUI_PROPEL_TYPE       (rtgui_propel_type_get())
-/** Casts the object to an rtgui_label_t */
+/** Casts the object to an rtgui_propel_t */
 #define RTGUI_PROPEL(obj)       (RTGUI_OBJECT_CAST((obj), RTGUI_PROPEL_TYPE, rtgui_propel_t))
-/** Checks if the object is an rtgui_label_t */
+/** Checks if the object is an rtgui_propel_t */
 #define RTGUI_IS_PROPEL(obj)    (RTGUI_OBJECT_CHECK_TYPE((obj), RTGUI_PROPEL_TYPE))
 
 #define PROPEL_FLAG_MASK		0x000F
