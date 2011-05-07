@@ -53,6 +53,9 @@ widgets/widget.c
 widgets/window.c
 widgets/combobox.c
 widgets/scrollbar.c
+widgets/menu.c
+widgets/rttab.c
+widgets/propel.c
 """)
 
 # The set of source files associated with this SConscript file.

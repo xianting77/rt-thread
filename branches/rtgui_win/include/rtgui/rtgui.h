@@ -56,7 +56,7 @@ typedef struct rtgui_iconbox    rtgui_iconbox_t;
 typedef struct rtgui_menu_item  rtgui_menu_item_t;
 typedef struct rtgui_menu       rtgui_menu_t;
 typedef struct rtgui_combo      rtgui_combo_t;
-
+typedef struct rtgui_rttab      rtgui_rttab_t;
 
 typedef rt_bool_t (*rtgui_event_handler_ptr)(PVOID wdt, rtgui_event_t* event);
 
