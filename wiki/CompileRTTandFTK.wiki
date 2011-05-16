@@ -21,20 +21,23 @@ Howto Compile RT-Thread && FTK for QEMU/mini2440
 
     * if using gcc compiler, set CROSS_TOOL = 'gcc', else CROSS_TOOL = 'armcc'
     * set EXEC_PATH to your toolchains' install path, for example, my EXEC_PATH = E:/Program Files/CodeSourcery/Sourcery G++ Lite/bin
-
+{{{
       CROSS_TOOL      = 'gcc'
 
       if  CROSS_TOOL == 'gcc':
               PLATFORM        = 'gcc'
               EXEC_PATH       = 'E:/Program Files/CodeSourcery/Sourcery G++ Lite/bin'
+}}}
 
 5. Edit "bsp\mini2440\rtconfig.h" to configure building components
+{{{
     * Open Macro /* #define RT_USING_NEWLIB */
     * Open Macro /* #define RT_USING_PTHREADS */
     * Open Macro/* #define RT_USING_DFS_DEVFS */
     * Open Macro/* #define RT_USING_FTK */
     * Open Macro/* #define DFS_USING_WORKDIR */
     * Close Macro #define RT_USING_RTGUI
+}}}
 
 6. Compile RT-Thread && FTK
 
