@@ -19,7 +19,6 @@ Howto Compile RT-Thread && FTK for QEMU/mini2440
 
 4. Edit "bsp\mini2440\rtconfig.py" to configure devlopement environment
 
-  * if using gcc compiler, set CROSS_TOOL = 'gcc', else CROSS_TOOL = 'armcc'
   * set EXEC_PATH to your toolchains' install path, for example, my EXEC_PATH = E:/Program Files/CodeSourcery/Sourcery G++ Lite/bin
 {{{
       CROSS_TOOL      = 'gcc'
