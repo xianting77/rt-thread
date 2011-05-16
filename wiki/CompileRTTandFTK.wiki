@@ -2,9 +2,9 @@ Howto Compile RT-Thread && FTK for QEMU/mini2440
 
 1.Get RT-Thread && FTK source code
 
-    * Get RT-Thread source code from SVN server http://code.google.com/p/rt-thread
+    * <a href="http://rt-thread.googlecode.com">Get RT-Thread source code from SVN server</a>
     * Get FTK source code 
-          o Make sure you have read "http://code.google.com/p/rt-thread/source/browse/trunk/components/external/ftk/readme.txt" and get FTK source code
+          o Make sure you have read <a href="http://code.google.com/p/rt-thread/source/browse/trunk/components/external/ftk/readme.txt">readme.txt</a>and get FTK source code
 
 2. Install scons build system
 
@@ -49,5 +49,4 @@ Howto Compile RT-Thread && FTK for QEMU/mini2440
 
     * make sure rtthread-mini2440.axf have been created in "bsp/mini2440" direcotry
     * unzip SDCARD.z i p file which located in "tools" directory to current directory
-    * run run-mini2440-sdcard.bat and RT-Thread RTOS would be run 
-
+    * run run-mini2440-sdcard.bat and RT-Thread && FTK would be run 
