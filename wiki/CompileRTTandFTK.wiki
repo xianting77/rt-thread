@@ -1,4 +1,4 @@
-Howto Compile RT-Thread && FTK on QEMU/mini2440
+Howto Compile RT-Thread && FTK for QEMU/mini2440
 
 1.Get RT-Thread && FTK source code
 
@@ -50,6 +50,4 @@ Howto Compile RT-Thread && FTK on QEMU/mini2440
     * make sure rtthread-mini2440.axf have been created in "bsp/mini2440" direcotry
     * unzip SDCARD.z i p file which located in "tools" directory to current directory
     * run run-mini2440-sdcard.bat and RT-Thread RTOS would be run 
-
-
 
