@@ -4,18 +4,18 @@ Howto Compile RT-Thread && FTK for QEMU/mini2440
 
     * <a href="http://rt-thread.googlecode.com">Get RT-Thread source code from SVN server</a>
     * Get FTK source code 
-    # Make sure you have read <a href="http://code.google.com/p/rt-thread/source/browse/trunk/components/external/ftk/readme.txt">readme.txt</a>and get FTK source code
+        *Make sure you have read <a href="http://code.google.com/p/rt-thread/source/browse/trunk/components/external/ftk/readme.txt">readme.txt</a>and get FTK source code
 
 2. Install scons build system
 
     * Make sure you have installed python 2.5.x and scons 1.x or 2.x, belowing is the download URL of the software for windows users:
-    # http://www.rt-thread.org/download/python-2.5.2.msi
-    # http://www.rt-thread.org/download/scons-2.0.1.win32.exe 
+        *http://www.rt-thread.org/download/python-2.5.2.msi
+        *http://www.rt-thread.org/download/scons-2.0.1.win32.exe 
 
 3. Install compiler
 
     * You can choose to GNU GCC or armcc as compiler.
-          o If using gcc compiler, CodeSourcery ARM EABI toolchai n is one of the choice.
+        *If using gcc compiler, CodeSourcery ARM EABI toolchai n is one of the choice.
 
 4. Edit "bsp\mini2440\rtconfig.py" to configure devlopement environment
 
