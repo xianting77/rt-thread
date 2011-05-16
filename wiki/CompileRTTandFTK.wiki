@@ -32,11 +32,11 @@ Howto Compile RT-Thread && FTK for QEMU/mini2440
 5. Edit "bsp\mini2440\rtconfig.h" to configure building components
   * Open Macro
 {{{
-    /* #define RT_USING_NEWLIB */
-    /* #define RT_USING_PTHREADS */
-    /* #define RT_USING_DFS_DEVFS */
-    /* #define RT_USING_FTK */
-    /* #define DFS_USING_WORKDIR */
+    #define RT_USING_NEWLIB
+    #define RT_USING_PTHREADS
+    #define RT_USING_DFS_DEVFS
+    #define RT_USING_FTK
+    #define DFS_USING_WORKDIR
 }}}
   * Close Macro
 {{{
