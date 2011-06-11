@@ -1,5 +1,5 @@
 #labels Featured
-= RT-Thread/LM3S =
+= RT-Thread/AT91SAM7X256 =
 
 RT-Thread/AT91SAM7x256 is a branches for the ATMEL AT91SAM7x256, an ARM7TDMI based High-performance 32-bit RISC Microcontroller with Thumb extensions, 256K Bytes Flash, 64K Bytes SRAM, USB 2.0, Ethernet MAC 10/100 base-T.
 
@@ -8,7 +8,7 @@ The features of RT-Thread/AT91SAM7x256 include:
   * FinSH shell in USART1;
   * Device File System;
   * LwIP, built-in AT91SAM7x256 Ethernet interface driver;
-  * Development Tools, Keil MDK. 
+  * Development Tools, Keil MDK or GCC. 
 
 = Branch Maintainer = 
   * mbbill
