@@ -14,4 +14,4 @@ The features of RT-Thread/AT91SAM7x256 include:
   * mbbill
 
 = 0.4.0 Beta1 =
-http://rt-thread.googlecode.com/files/rt-thread-0.4.0%20beta1.zip
+    [http://rt-thread.googlecode.com/files/rt-thread-0.4.0%20beta1.zip]
