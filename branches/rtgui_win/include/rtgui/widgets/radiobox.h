@@ -17,10 +17,12 @@ typedef struct rtgui_rb_group rtgui_rb_group_t;
 /* rb group, rb => radiobox */
 struct rtgui_rb_group
 {
+	rt_uint32_t item_used;/* record times cited. */
 	rt_uint32_t	item_count;
 	rt_uint16_t	item_sel;
 	rtgui_radiobox_t **rboxs;
 	rt_uint32_t* bind_var; /* binding user variable */
+	rt_bool_t (*on_item)(PVOID wdt, rtgui_event_t* event);
 };
 
 struct rtgui_radiobox
@@ -46,7 +48,7 @@ void rtgui_rb_group_unbind(rtgui_rb_group_t *group);
 /* set selection in group */
 void rtgui_rb_group_set_sel(rtgui_rb_group_t* group, int selection);
 int rtgui_rb_group_get_sel(rtgui_rb_group_t* group);
-
+void rtgui_rb_group_set_onitem(rtgui_rb_group_t* group, rtgui_event_handler_ptr func);
 rt_bool_t rtgui_radiobox_event_handler(PVOID wdt, rtgui_event_t* event);
 
 #endif

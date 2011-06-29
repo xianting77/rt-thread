@@ -23,13 +23,17 @@ static void _rtgui_radiobox_destructor(rtgui_radiobox_t *rbox)
 	}
 	if(rbox->group != RT_NULL)
 	{/* in same group, free once only. */
-		if(rbox->group->rboxs != RT_NULL)
-		{
-			rt_free(rbox->group->rboxs);
-			rbox->group->rboxs = RT_NULL;
+		rbox->group->item_used--; /* Times cited subtract 1. */
+		if(rbox->group->item_used==0)
+		{/* when and only when there is no user. */
+			if(rbox->group->rboxs != RT_NULL)
+			{
+				rt_free(rbox->group->rboxs);
+				rbox->group->rboxs = RT_NULL;
+			}
+			rt_free(rbox->group);
+			rbox->group = RT_NULL;
 		}
-		rt_free(rbox->group);
-		rbox->group = RT_NULL;
 	}
 }
 rtgui_type_t *rtgui_radiobox_type_get(void)
@@ -77,10 +81,12 @@ rtgui_radiobox_t* rtgui_radiobox_create(PVOID parent, const char* name,
 
 			if(grp != RT_NULL) 
 			{
+				grp->item_used = 0;
 				grp->item_count = 0;
 				grp->item_sel = 0;
 				grp->rboxs = rt_malloc(sizeof(rtgui_radiobox_t*));
 				grp->bind_var = RT_NULL;
+				grp->on_item = RT_NULL;
 				group = grp;
 			}
 		}
@@ -91,7 +97,7 @@ rtgui_radiobox_t* rtgui_radiobox_create(PVOID parent, const char* name,
 					sizeof(rtgui_radiobox_t*)*(group->item_count+1));
 			*(group->rboxs+group->item_count) = rbox;
 			group->item_count++;
-
+			group->item_used++; /* Times cited add 1. */
 			rbox->group = group;
 		}
 	}
@@ -134,6 +140,11 @@ static void rtgui_radiobox_onmouse(rtgui_radiobox_t* rbox, rtgui_event_mouse_t* 
 			if(group->bind_var != RT_NULL)
 				*(group->bind_var) = group->item_sel;
 			
+			if(group != RT_NULL && group->on_item != RT_NULL)
+			{
+				group->on_item(group, RT_NULL);
+			}
+
 			/* update rbox widget */
 			rtgui_theme_draw_radiobox(*(group->rboxs + old_item));
 			rtgui_theme_draw_radiobox(*(group->rboxs + i));	
@@ -277,6 +288,14 @@ int rtgui_rb_group_get_sel(rtgui_rb_group_t* group)
 	}
 
 	return 0;
+}
+
+void rtgui_rb_group_set_onitem(rtgui_rb_group_t* group, rtgui_event_handler_ptr func)
+{
+	if(group != RT_NULL)
+	{
+		group->on_item = func;
+	}
 }
 
 static rt_bool_t rtgui_radiobox_unfocus(PVOID wdt, rtgui_event_t* event)
