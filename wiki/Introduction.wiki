@@ -1,5 +1,3 @@
-#RT-Thread Introduction
-
 = Introduction =
 
 The Real-Time Thread(RT-Thread) Operating System is an open source real-time operating system developed by the RT-Thread Studio based in China, after five years' fully concentrated development. It is aimed to change the current situation in China that there is no well used open souce real-time operating system in the microcontroller area. It is a real-time operating system not only on the open source level but also on the commercial standard level. Having been used by more than ten companies in China, it proved to be an operating system running stably for a long time.
