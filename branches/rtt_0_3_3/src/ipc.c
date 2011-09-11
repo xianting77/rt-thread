@@ -1290,12 +1290,9 @@ rt_err_t rt_mb_send_wait (rt_mailbox_t mb, rt_uint32_t value, rt_int32_t timeout
 		{
             /* enable interrupt */
             rt_hw_interrupt_enable(temp);
-
-            thread->error = -RT_EFULL;
             return -RT_EFULL;
         }
 
-	
 		/* suspend current thread */
 		rt_ipc_list_suspend(&(mb->suspend_sender_thread),
 				thread, mb->parent.parent.flag);
