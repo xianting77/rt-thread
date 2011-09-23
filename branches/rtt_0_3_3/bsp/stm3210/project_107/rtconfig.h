@@ -59,6 +59,7 @@
 /* SECTION: Device System */
 /* Using Device System */
 #define RT_USING_DEVICE
+#define RT_USING_UART1
 #define RT_USING_UART2
 
 /* SECTION: Console options */
@@ -126,5 +127,18 @@
 #define RT_LWIP_ETHTHREAD_PRIORITY		15
 #define RT_LWIP_ETHTHREAD_MBOX_SIZE		4
 #define RT_LWIP_ETHTHREAD_STACKSIZE		512
+
+/* TCP sender buffer space */
+#define RT_LWIP_TCP_SND_BUF	8192
+/* TCP receive window. */
+#define RT_LWIP_TCP_WND		8192
+
+#define CHECKSUM_CHECK_TCP              0
+#define CHECKSUM_CHECK_IP               0
+#define CHECKSUM_CHECK_UDP              0
+
+#define CHECKSUM_GEN_TCP                0
+#define CHECKSUM_GEN_IP                 0
+#define CHECKSUM_GEN_UDP                0
 
 #endif
