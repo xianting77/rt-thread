@@ -23,7 +23,7 @@ extern "C" {
 
 /* RT-Thread version information */
 #define RT_VERSION						3L
-#define RT_SUBVERSION					2L
+#define RT_SUBVERSION					3L
 
 /* date type defination					*/
 typedef signed 	 char  					rt_int8_t;
