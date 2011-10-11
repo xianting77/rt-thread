@@ -331,7 +331,11 @@ void enc28j60_isr()
 		/* TX Error handler */
 		if ((eir & EIR_TXERIF) != 0)
 		{
-			spi_write_op(ENC28J60_BIT_FIELD_CLR, EIR, EIR_TXERIF);
+            enc28j60_set_bank(ECON1);
+            spi_write_op(ENC28J60_BIT_FIELD_SET, ECON1, ECON1_TXRST);
+            spi_write_op(ENC28J60_BIT_FIELD_CLR, ECON1, ECON1_TXRST);
+            enc28j60_set_bank(EIR);
+            spi_write_op(ENC28J60_BIT_FIELD_CLR, EIR, EIR_TXERIF);
 		}
 
 		eir = spi_read(EIR);
