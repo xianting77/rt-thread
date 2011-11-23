@@ -640,8 +640,9 @@ rtgui_op(
 		if (ybot > ytop)
 		{
 			curBand = newReg->data->numRects;
-			(* overlapFunc)(newReg, r1, r1BandEnd, r2, r2BandEnd, ytop, ybot,
-							pOverlap);
+			if ((* overlapFunc)(newReg, r1, r1BandEnd, r2, r2BandEnd, ytop, ybot,
+							pOverlap) == RTGUI_REGION_STATUS_FAILURE)
+				return RTGUI_REGION_STATUS_FAILURE;
 			Coalesce(newReg, prevBand, curBand);
 		}
 
