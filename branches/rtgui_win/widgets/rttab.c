@@ -50,8 +50,8 @@ rtgui_type_t *rtgui_rttab_type_get(void)
 	if(!tab_type)
 	{
 		tab_type = rtgui_type_create("rttab", RTGUI_CONTAINER_TYPE,
-			sizeof(rtgui_rttab_t), 
-			RTGUI_CONSTRUCTOR(_rtgui_rttab_constructor), 
+			sizeof(rtgui_rttab_t),
+			RTGUI_CONSTRUCTOR(_rtgui_rttab_constructor),
 			RTGUI_DESTRUCTOR(_rtgui_rttab_destructor));
 	}
 
@@ -82,7 +82,7 @@ rtgui_rttab_t* rtgui_rttab_create(PVOID parent, char* caption,int left, int top,
 		height = rtgui_font_get_font_height(RTGUI_WIDGET_FONT(tab));
 		tab->tag_size = height + RTGUI_WIDGET_DEFAULT_MARGIN*2;
     }
-	
+
     return tab;
 }
 
@@ -105,7 +105,7 @@ void rtgui_rttab_draw_title_rect(struct rtgui_dc* dc, rtgui_rect_t* rect,
 	}
 
 	RTGUI_DC_FC(dc) = c2;
-	
+
 	rtgui_dc_draw_vline(dc, rect->x2 - 1, rect->y1, rect->y2);
 	if(flag == RTGUI_RTTAB_ORIENT_BOTTOM)
 	{
@@ -119,7 +119,7 @@ void rtgui_rttab_ondraw(rtgui_rttab_t* tab)
 	rtgui_rect_t rect, tmp_rect;
 	rtgui_rttab_item_t* item;
 	rtgui_dc_t* dc;
-	
+
 	RT_ASSERT(tab != RT_NULL);
 
 	/* begin drawing */
@@ -138,26 +138,26 @@ void rtgui_rttab_ondraw(rtgui_rttab_t* tab)
 		rtgui_dc_draw_line(dc,tmp_rect.x1, tmp_rect.y1, tmp_rect.x1, tmp_rect.y2);
 		rtgui_dc_draw_line(dc,tmp_rect.x2-1, tmp_rect.y1, tmp_rect.x2-1, tmp_rect.y2);
 		rtgui_dc_draw_line(dc,tmp_rect.x1, tmp_rect.y1, tmp_rect.x2, tmp_rect.y1);
-		
+
 		tmp_rect.y1 = tmp_rect.y2-1;
 		tmp_rect.y2 = rect.y2;
 		/* fill client background */
 		rtgui_rect_inflate(&tmp_rect,-RTGUI_WIDGET_BORDER(tab));
-		rtgui_dc_fill_rect(dc, &tmp_rect); 
+		rtgui_dc_fill_rect(dc, &tmp_rect);
 		rtgui_rect_inflate(&tmp_rect,RTGUI_WIDGET_BORDER(tab));
 		/* draw client border */
 		RTGUI_DC_FC(dc) = white;
 		rtgui_dc_draw_line(dc,tmp_rect.x1, tmp_rect.y1, tmp_rect.x1, tmp_rect.y2-1);
 		RTGUI_DC_FC(dc) = dark;
 		rtgui_dc_draw_line(dc,tmp_rect.x2-1, tmp_rect.y1, tmp_rect.x2-1, tmp_rect.y2-1);
-		rtgui_dc_draw_line(dc,tmp_rect.x1, tmp_rect.y2-1, tmp_rect.x2, tmp_rect.y2-1);	
+		rtgui_dc_draw_line(dc,tmp_rect.x1, tmp_rect.y2-1, tmp_rect.x2, tmp_rect.y2-1);
 	}
 	else if(tab->orient==RTGUI_RTTAB_ORIENT_BOTTOM)
 	{
 		tmp_rect.y2 = tmp_rect.y1 + (rtgui_rect_height(rect)-tab->tag_size);
 		/* fill client background */
 		rtgui_rect_inflate(&tmp_rect,-RTGUI_WIDGET_BORDER(tab));
-		rtgui_dc_fill_rect(dc, &tmp_rect); 
+		rtgui_dc_fill_rect(dc, &tmp_rect);
 		rtgui_rect_inflate(&tmp_rect,RTGUI_WIDGET_BORDER(tab));
 		/* draw client border */
 		RTGUI_DC_FC(dc) = white;
@@ -165,16 +165,16 @@ void rtgui_rttab_ondraw(rtgui_rttab_t* tab)
 		rtgui_dc_draw_line(dc,tmp_rect.x1, tmp_rect.y1, tmp_rect.x2, tmp_rect.y1);
 		RTGUI_DC_FC(dc) = dark;
 		rtgui_dc_draw_line(dc,tmp_rect.x2-1, tmp_rect.y1, tmp_rect.x2-1, tmp_rect.y2);
-		
+
 		tmp_rect.y1 = tmp_rect.y2-1;
 		tmp_rect.y2 = rect.y2;
 		/* draw tagbar border */
 		RTGUI_DC_FC(dc) = RTGUI_WIDGET_BACKGROUND(tab);
 		rtgui_dc_draw_line(dc,tmp_rect.x1, tmp_rect.y1, tmp_rect.x1, tmp_rect.y2-1);
 		rtgui_dc_draw_line(dc,tmp_rect.x2-1, tmp_rect.y1+1, tmp_rect.x2-1, tmp_rect.y2-1);
-		rtgui_dc_draw_line(dc,tmp_rect.x1, tmp_rect.y2-1, tmp_rect.x2, tmp_rect.y2-1);	
+		rtgui_dc_draw_line(dc,tmp_rect.x1, tmp_rect.y2-1, tmp_rect.x2, tmp_rect.y2-1);
 	}
-	
+
 	tmp_rect = rect;
 
 	if(tab->orient==RTGUI_RTTAB_ORIENT_TOP)
@@ -193,7 +193,7 @@ void rtgui_rttab_ondraw(rtgui_rttab_t* tab)
 			rtgui_rttab_draw_title_rect(dc, &tmp_rect, default_background, dark_grey, RTGUI_RTTAB_ORIENT_TOP);
 			rtgui_rect_inflate(&tmp_rect, 1);
 
-			if(i == tab->now_tag) 
+			if(i == tab->now_tag)
 			{
 				_left = tmp_rect.x1;
 				_right = tmp_rect.x2;
@@ -234,7 +234,7 @@ void rtgui_rttab_ondraw(rtgui_rttab_t* tab)
 		h = rtgui_rect_height(rect)-RTGUI_WIDGET_BORDER(tab)*2 - tab->tag_size;
 		tmp_rect.y1 += RTGUI_WIDGET_BORDER(tab) + h;
 		tmp_rect.y2 = tmp_rect.y1 + tab->tag_size;
-	
+
 		for(i=tab->frist_tag; i<tab->tag_count; i++)
 		{
 			item = &(tab->tags[i]);
@@ -248,7 +248,7 @@ void rtgui_rttab_ondraw(rtgui_rttab_t* tab)
 			rtgui_rttab_draw_title_rect(dc, &tmp_rect, default_background, dark_grey, RTGUI_RTTAB_ORIENT_BOTTOM);
 			rtgui_rect_inflate(&tmp_rect, 1);
 
-			if(i == tab->now_tag) 
+			if(i == tab->now_tag)
 			{
 				_left = tmp_rect.x1;
 				_right = tmp_rect.x2;
@@ -288,7 +288,7 @@ void rtgui_rttab_ondraw(rtgui_rttab_t* tab)
 }
 
 /* add a new page tag */
-void rtgui_rttab_add_tag(rtgui_rttab_t* tab, char* name, rtgui_image_t* image)
+rt_err_t rtgui_rttab_add_tag(rtgui_rttab_t* tab, char* name, rtgui_image_t* image)
 {
 	rtgui_rect_t rect;
 	rtgui_rttab_item_t item={0}, *_tags;
@@ -319,7 +319,7 @@ void rtgui_rttab_add_tag(rtgui_rttab_t* tab, char* name, rtgui_image_t* image)
 	item.tag_width = rtgui_font_get_string_width(RTGUI_WIDGET_FONT(tab), name);
 	item.tag_width += RTGUI_WIDGET_DEFAULT_MARGIN*2;
 	if(item.image != RT_NULL) item.tag_width += item.image->w+RTGUI_WIDGET_DEFAULT_MARGIN;
-	
+
 	if(tab->tag_count == 0)
 	{
 		_tags = rt_malloc(sizeof(rtgui_rttab_item_t));
@@ -327,20 +327,20 @@ void rtgui_rttab_add_tag(rtgui_rttab_t* tab, char* name, rtgui_image_t* image)
 	else
 	{
 		_tags = rt_realloc(tab->tags,sizeof(rtgui_rttab_item_t)*(tab->tag_count+1));
-	}	
-	
+	}
+
 	_tags[tab->tag_count].tag = item.tag;
 	_tags[tab->tag_count].image = item.image;
 	_tags[tab->tag_count].tag_width = item.tag_width;
 	tab->tag_count++;
 	tab->tags = _tags;
-	
+
 	RTGUI_WIDGET_UNHIDE(_tags[tab->now_tag].tag);
 
 	{
 		int i, uw=0, hide_num=0;
 		rtgui_rttab_item_t* tag;
-		
+
 		for(i=0; i<tab->tag_count; i++)
 		{
 			tag = &(tab->tags[i]);
@@ -348,14 +348,14 @@ void rtgui_rttab_add_tag(rtgui_rttab_t* tab, char* name, rtgui_image_t* image)
 			if(uw >= w)
 			{
 				hide_num = tab->tag_count-i;
-				
+
 				if(tab->ppl != RT_NULL)
-				{	
+				{
 					rtgui_widget_get_rect(tab, &rect);
-					if((uw-tag->tag_width) >= (w-rtgui_rect_width(rect))) 
+					if((uw-tag->tag_width) >= (w-rtgui_rect_width(rect)))
 						hide_num += 1;
 				}
-				break;	
+				break;
 			}
 		}
 		if(hide_num>0)
@@ -370,6 +370,10 @@ void rtgui_rttab_add_tag(rtgui_rttab_t* tab, char* name, rtgui_image_t* image)
 					ppl_top = h+RTGUI_WIDGET_BORDER(tab)*2;
 				tab->ppl = rtgui_propel_create(tab, rtgui_rect_width(rect)-ppl_h*2,
 						ppl_top, ppl_h*2, ppl_h, RTGUI_HORIZONTAL);
+				if (tab->ppl == RT_NULL)
+				{
+					return RT_ENOMEM;
+				}
 				rtgui_propel_bind(tab->ppl, (rt_uint32_t*)&(tab->frist_tag));
 				tab->ppl->wdtlnk = tab;
 				tab->ppl->on_click = rtgui_rttab_ppl_onclick;
@@ -381,6 +385,7 @@ void rtgui_rttab_add_tag(rtgui_rttab_t* tab, char* name, rtgui_image_t* image)
 			}
 		}
 	}
+	return RT_EOK;
 }
 
 rtgui_container_t* rtgui_rttab_get_container_by_index(rtgui_rttab_t* tab, rt_int16_t index)
@@ -407,12 +412,12 @@ rtgui_container_t* rtgui_rttab_get_container_by_title(rtgui_rttab_t* tab, char* 
 	for(i=0; i<tab->tag_count; i++)
 	{
 		item = &(tab->tags[i]);
-		if(rt_strstr(title, item->tag->title) != RT_NULL)	
+		if(rt_strstr(title, item->tag->title) != RT_NULL)
 		{
 			return RTGUI_CONTAINER(item->tag);
 		}
 	}
-	
+
 	return RT_NULL;
 }
 
@@ -427,7 +432,7 @@ static void rtgui_rttab_onmouse(rtgui_rttab_t* tab, rtgui_event_mouse_t* emouse)
 	tagbar_rect = rect;
 	if(tab->orient==RTGUI_RTTAB_ORIENT_TOP)
 	{
-		tagbar_rect.y2 = tagbar_rect.y1 + RTGUI_WIDGET_BORDER(tab) + tab->tag_size;	
+		tagbar_rect.y2 = tagbar_rect.y1 + RTGUI_WIDGET_BORDER(tab) + tab->tag_size;
 	}
 	else if(tab->orient==RTGUI_RTTAB_ORIENT_BOTTOM)
 	{
@@ -462,7 +467,7 @@ static void rtgui_rttab_onmouse(rtgui_rttab_t* tab, rtgui_event_mouse_t* emouse)
 						item = &(tab->tags[tab->now_tag]);
 						/* hide old item */
 						RTGUI_WIDGET_HIDE(item->tag);
-						
+
 						tab->now_tag = i;
 						item = &(tab->tags[tab->now_tag]);
 						RTGUI_WIDGET_UNHIDE(item->tag);
@@ -473,8 +478,8 @@ static void rtgui_rttab_onmouse(rtgui_rttab_t* tab, rtgui_event_mouse_t* emouse)
 				}
 				return;
 			}
-			tmp_rect.x1 = tmp_rect.x2;	
-		}	
+			tmp_rect.x1 = tmp_rect.x2;
+		}
 	}
 	else
 	{	/* other child widget */
@@ -486,27 +491,27 @@ rt_bool_t rtgui_rttab_event_handler(PVOID wdt, rtgui_event_t* event)
 {
 	rtgui_widget_t *widget = (rtgui_widget_t*)wdt;
 	rtgui_rttab_t* tab = (rtgui_rttab_t*)widget;
-	
+
 	if(tab == RT_NULL)return RT_FALSE;
 
 	switch (event->type)
 	{
-		case RTGUI_EVENT_PAINT:		
-			if(widget->on_draw != RT_NULL ) 
+		case RTGUI_EVENT_PAINT:
+			if(widget->on_draw != RT_NULL )
 				widget->on_draw(widget, event);
 			else
-			{			
+			{
 				rtgui_rttab_ondraw(tab);
 				/* paint on each child */
 				rtgui_container_dispatch_event(RTGUI_CONTAINER(tab), event);
 			}
 			break;
 		/* not support keyboard event in current version. */
-		/*case RTGUI_EVENT_KBD: 
-			break;*/	
-		
+		/*case RTGUI_EVENT_KBD:
+			break;*/
+
 		case RTGUI_EVENT_MOUSE_BUTTON:
-			if(widget->on_mouseclick != RT_NULL) 
+			if(widget->on_mouseclick != RT_NULL)
 			{
 				widget->on_mouseclick(widget, event);
 			}
@@ -534,7 +539,7 @@ static rt_bool_t rtgui_rttab_ppl_onclick (PVOID wdt, rtgui_event_t* event)
 	for(i=0; i<tab->tag_count; i++)
 	{
 		item = &(tab->tags[i]);
-		if(!RTGUI_WIDGET_IS_HIDE(item->tag)) 
+		if(!RTGUI_WIDGET_IS_HIDE(item->tag))
 		{
 			RTGUI_WIDGET_HIDE(item->tag);
 			item = &(tab->tags[tab->now_tag]);
