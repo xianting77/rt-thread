@@ -66,14 +66,14 @@ static rtgui_region_status_t rtgui_break(rtgui_region_t *pReg);
  * the y1 to y2 area spanned by the band), then the rectangle may be broken
  * down into two or more smaller rectangles stacked one atop the other.
  *
- *  -----------				                -----------
- *  |         |				                |         |		    band 0
- *  |         |  --------		            -----------  --------
- *  |         |  |      |  in y-x banded    |         |  |      |   band 1
- *  |         |  |      |  form is	        |         |  |      |
- *  -----------  |      |		            -----------  --------
- *               |      |				    |      |   band 2
- *               --------				    --------
+ *  -----------                              -----------
+ *  |         |                              |         |             band 0
+ *  |         |  --------                    -----------  --------
+ *  |         |  |      |  in y-x banded     |         |  |      |   band 1
+ *  |         |  |      |  form is           |         |  |      |
+ *  -----------  |      |                    -----------  --------
+ *               |      |                                 |      |   band 2
+ *               --------                                 --------
  *
  * An added constraint on the rectangles is that they must cover as much
  * horizontal area as possible: no two rectangles within a band are allowed
@@ -730,12 +730,12 @@ rtgui_set_extents (rtgui_region_t *region)
 	if (!region->data)
 		return;
 	if (!region->data->size)
-	{	
+	{
 		region->extents.x2 = region->extents.x1;
 		region->extents.y2 = region->extents.y1;
 		return;
 	}
-	
+
 	box = PIXREGION_BOXPTR(region);
 	boxEnd = PIXREGION_END(region);
 
@@ -843,7 +843,7 @@ rtgui_region_intersect(rtgui_region_t *newReg,
 	/* check for trivial reject */
 	if (PIXREGION_NIL(reg1)  || PIXREGION_NIL(reg2) ||
 			!EXTENTCHECK(&reg1->extents, &reg2->extents))
-	{	
+	{
 		/* Covers about 20% of all cases */
 		freeData(newReg);
 		newReg->extents.x2 = newReg->extents.x1;
@@ -857,7 +857,7 @@ rtgui_region_intersect(rtgui_region_t *newReg,
 			newReg->data = &rtgui_region_emptydata;
 	}
 	else if (!reg1->data && !reg2->data)
-	{	
+	{
 		/* Covers about 80% of cases that aren't trivially rejected */
 		newReg->extents.x1 = RTGUI_MAX(reg1->extents.x1, reg2->extents.x1);
 		newReg->extents.y1 = RTGUI_MAX(reg1->extents.y1, reg2->extents.y1);
@@ -867,25 +867,25 @@ rtgui_region_intersect(rtgui_region_t *newReg,
 		newReg->data = (rtgui_region_data_t *)RT_NULL;
 	}
 	else if (!reg2->data && SUBSUMES(&reg2->extents, &reg1->extents))
-	{	
+	{
 		return rtgui_region_copy(newReg, reg1);
 	}
 	else if (!reg1->data && SUBSUMES(&reg1->extents, &reg2->extents))
-	{	
+	{
 		return rtgui_region_copy(newReg, reg2);
 	}
 	else if (reg1 == reg2)
-	{	
+	{
 		return rtgui_region_copy(newReg, reg1);
 	}
 	else
-	{	
+	{
 		/* General purpose intersection */
-		int overlap; /* result ignored */  
+		int overlap; /* result ignored */
 		if (!rtgui_op(newReg, reg1, reg2, rtgui_region_intersectO, RTGUI_REGION_STATUS_FAILURE, RTGUI_REGION_STATUS_FAILURE,
 					   &overlap))
 			return RTGUI_REGION_STATUS_FAILURE;
-		
+
 		rtgui_set_extents(newReg);
 	}
 
